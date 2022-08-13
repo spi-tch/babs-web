@@ -13,5 +13,5 @@ EXPOSE 5000
 COPY start.sh /usr/start.sh
 RUN chmod +x /usr/start.sh
 
-CMD ['./temi/start.sh']
+CMD ['sh', '/usr/start.sh']
 
