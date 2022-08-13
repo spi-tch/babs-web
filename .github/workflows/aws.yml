@@ -3,15 +3,15 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches:
-      - "test"
+      - "staging"
 
 env:
   AWS_REGION: eu-west-1
   ECR_REPOSITORY: babs-app
-  ECS_SERVICE: temi-ai-service
-  ECS_CLUSTER: new-staging
+  ECS_SERVICE: babs-app-service
+  ECS_CLUSTER: staging
   ECS_TASK_DEFINITION: task-definition.json
-  CONTAINER_NAME: temi
+  CONTAINER_NAME: babs-app
 
 permissions:
   contents: read
