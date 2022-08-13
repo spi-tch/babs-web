@@ -6,7 +6,7 @@ on:
       - "staging"
 
 env:
-  AWS_REGION: eu-west-1
+  AWS_REGION: eu-west-2
   ECR_REPOSITORY: babs-app
   ECS_SERVICE: babs-app-service
   ECS_CLUSTER: staging
