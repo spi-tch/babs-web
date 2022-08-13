@@ -9,7 +9,7 @@ env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: babs-app
   ECS_SERVICE: babs-app-service
-  ECS_CLUSTER: staging
+  ECS_CLUSTER: babs-staging
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: babs-app
 
