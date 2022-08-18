@@ -16,8 +16,11 @@ CC_MAP = {
 
 def create_app():
   conf_name = os.getenv('FLASK_CONFIG', 'test')
-  template_dir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-  app = Flask(__name__, template_folder=os.path.join(template_dir, 'template'))
+  template_dir = os.path.join(os.path.dirname(
+    os.path.abspath(
+      os.path.dirname(__file__))), 'templates')
+  print(f'template folder is in: {os.path.abspath(template_dir)}')
+  app = Flask(__name__, template_folder=template_dir)
   app.config.from_object(APP_CONFIG[conf_name])
   APP_CONFIG[conf_name].init_app(app)
 
