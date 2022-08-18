@@ -36,7 +36,7 @@
         },
         {
           "name": "DB_PORT",
-          "value": "5000"
+          "value": "5432"
         },
         {
           "name": "DB_SCHEME",
