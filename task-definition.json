@@ -17,7 +17,56 @@
       "command": null,
       "linuxParameters": null,
       "cpu": 1024,
-      "environment": [],
+      "environment": [
+        {
+          "name": "BABS_APP_VERSION",
+          "value": "0"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "babs-test.cwt37uawctih.eu-west-2.rds.amazonaws.com"
+        },
+        {
+          "name": "DB_NAME",
+          "value": "babs-app"
+        },
+        {
+          "name": "DB_PASS",
+          "value": "babsadmin2022"
+        },
+        {
+          "name": "DB_PORT",
+          "value": "5000"
+        },
+        {
+          "name": "DB_SCHEME",
+          "value": "postgresql"
+        },
+        {
+          "name": "DB_USER",
+          "value": "admin_user"
+        },
+        {
+          "name": "FLASK_CONFIG",
+          "value": "prod"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "error"
+        },
+        {
+          "name": "TWILIO_SID",
+          "value": "AC15d2e71dbdc0d9289158abe54d6c2ad3"
+        },
+        {
+          "name": "TWILIO_TOKEN",
+          "value": "bd283e728d36ff5f34ec776b9116b9c5"
+        },
+        {
+          "name": "TWILIO_WA_PHONE_NUMBER",
+          "value": "+14155238886"
+        }
+      ],
       "resourceRequirements": null,
       "ulimits": null,
       "dnsServers": null,
@@ -29,7 +78,7 @@
       "memoryReservation": 1024,
       "volumesFrom": [],
       "stopTimeout": null,
-      "image": "409785844472.dkr.ecr.eu-west-2.amazonaws.com/babs-app:b73fc326ff48c5cb6ebc7c29bd1cddc9a5b62d40",
+      "image": "409785844472.dkr.ecr.eu-west-2.amazonaws.com/babs-app:e8dfddb74c00c6ac6f00264e1c7dd9810e3b444a",
       "startTimeout": null,
       "firelensConfiguration": null,
       "dependsOn": null,
@@ -56,7 +105,7 @@
     "EXTERNAL",
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:409785844472:task-definition/babs-app:9",
+  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:409785844472:task-definition/babs-app:13",
   "family": "babs-app",
   "requiresAttributes": [
     {
@@ -85,7 +134,7 @@
   "networkMode": null,
   "runtimePlatform": null,
   "cpu": null,
-  "revision": 9,
+  "revision": 13,
   "status": "ACTIVE",
   "inferenceAccelerators": null,
   "proxyConfiguration": null,
