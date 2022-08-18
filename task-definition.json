@@ -48,7 +48,7 @@
         },
         {
           "name": "FLASK_CONFIG",
-          "value": "prod"
+          "value": "production"
         },
         {
           "name": "LOG_LEVEL",
