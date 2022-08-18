@@ -78,6 +78,19 @@ jobs:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ needs.build.outputs.image }}
+        environment_variables: |
+          LOG_LEVEL=error
+          BABS_APP_VERSION=0
+          DB_HOST=babs-test.cwt37uawctih.eu-west-2.rds.amazonaws.com
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_PORT=5432
+          DB_SCHEME=postgresql
+          DB_USER=${{ secrets.DB_USER }}
+          DB_NAME=babs-app
+          FLASK_CONFIG=prod
+          TWILIO_WA_PHONE_NUMBER=${{ secrets.TWILIO_WA_PHONE_NUMBER }}
+          TWILIO_SID=${{ secrets.TWILIO_SID }}
+          TWILIO_TOKEN=${{ secrets.TWILIO_TOKEN }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1

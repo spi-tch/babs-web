@@ -9,7 +9,7 @@ class Config:
   KEY = os.getenv('HTTP_SECRET_KEY')
   SQLALCHEMY_DATABASE_URI = (f"{os.getenv('DB_SCHEME')}://{os.getenv('DB_USER')}:"
                              f"{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:"
-                             f"{os.getenv('DB_PORT')}")
+                             f"{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
   SQLALCHEMY_TRACK_MODIFICATIONS = False
 
   @staticmethod
@@ -27,6 +27,10 @@ class DevConfig(Config):
 
 class TestConfig(Config):
   TESTING = True
+
+  @classmethod
+  def init_app(cls, app):
+    pass
 
 
 class ProductionConfig(Config):
