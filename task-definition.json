@@ -16,20 +16,20 @@
       ],
       "command": null,
       "linuxParameters": null,
-      "cpu": 0,
+      "cpu": 1024,
       "environment": [],
       "resourceRequirements": null,
       "ulimits": null,
       "dnsServers": null,
       "mountPoints": [],
-      "workingDirectory": null,
+      "workingDirectory": "/app",
       "secrets": null,
       "dockerSecurityOptions": null,
       "memory": 2048,
       "memoryReservation": 1024,
       "volumesFrom": [],
       "stopTimeout": null,
-      "image": "409785844472.dkr.ecr.eu-west-2.amazonaws.com/babs-app:latest",
+      "image": "409785844472.dkr.ecr.eu-west-2.amazonaws.com/babs-app:b73fc326ff48c5cb6ebc7c29bd1cddc9a5b62d40",
       "startTimeout": null,
       "firelensConfiguration": null,
       "dependsOn": null,
@@ -56,7 +56,7 @@
     "EXTERNAL",
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:409785844472:task-definition/babs-app:1",
+  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:409785844472:task-definition/babs-app:9",
   "family": "babs-app",
   "requiresAttributes": [
     {
@@ -64,6 +64,12 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.ecr-auth"
+    },
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
     },
     {
       "targetId": null,
@@ -79,7 +85,7 @@
   "networkMode": null,
   "runtimePlatform": null,
   "cpu": null,
-  "revision": 1,
+  "revision": 9,
   "status": "ACTIVE",
   "inferenceAccelerators": null,
   "proxyConfiguration": null,
