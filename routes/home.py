@@ -5,4 +5,4 @@ home = Blueprint('home', __name__)
 
 @home.route('/', methods=['GET', 'POST'])
 def _home():
-  render_template('index.html')
+  return render_template('index.html')
