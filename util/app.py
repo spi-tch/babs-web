@@ -45,6 +45,7 @@ def register_blueprint(app):
 # Users
   app.register_blueprint(routes.user.register)
   app.register_blueprint(routes.user.verify)
+  app.register_blueprint(routes.admin.find)
 
 # Home
   app.register_blueprint(routes.home.home)

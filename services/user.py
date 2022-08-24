@@ -132,3 +132,7 @@ class UserService:
 
     # Save to DB
     self.save_verification_code({'uuid': user.uuid, 'code': code})
+
+  def find_user_by_phone(self, phone_number: str):
+    user = self.user_query.filter(User.phone_number == f"+{phone_number}").first()
+    return build_user_object(user)
