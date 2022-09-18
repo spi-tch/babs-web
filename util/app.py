@@ -6,12 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from config import APP_CONFIG
 
-db: SQLAlchemy = SQLAlchemy()
-# TODO: Find a better way to do this, pycountry is useless and I don't trust phonenumbers.
-CC_MAP = {
-  'NG': 234,
-  'US': 1
-}
+db: SQLAlchemy = None
 
 
 def create_app():
@@ -34,8 +29,6 @@ def create_app():
   from middleware import Middleware
   app.wsgi_app = Middleware(app.wsgi_app)
 
-# DB Initialize
-  db.create_all()
   return app
 
 
@@ -43,8 +36,7 @@ def register_blueprint(app):
   import routes
 
 # Users
-  app.register_blueprint(routes.user.register)
-  app.register_blueprint(routes.user.verify)
+  app.register_blueprint(routes.user.user)
   app.register_blueprint(routes.admin.find)
 
 # Home
@@ -54,10 +46,11 @@ def register_blueprint(app):
 def configure_db(app: Flask):
   global db
   db = SQLAlchemy(app)
+  db.init_app(app)
 
 
-def get_phone_number(country, phone_number) -> str:
-  return f"+{CC_MAP[country]}{phone_number}"
+def get_phone_number(phone_number: str) -> str:
+  return phone_number if phone_number.startswith('+') else f'+{phone_number}'
 
 
 def generate_code() -> str:

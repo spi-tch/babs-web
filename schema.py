@@ -5,7 +5,7 @@ class BaseSchema(Schema):
   pass
 
 
-class UserRegistrationSchema(BaseSchema):
+class UserUpdateSchema(BaseSchema):
   phone_number = fields.String(required=True,
                                error_messages={
                                  'required': 'this field is mandatory',
@@ -21,11 +21,6 @@ class UserRegistrationSchema(BaseSchema):
                               'required': 'this field is mandatory',
                               'invalid': 'invalid, pass a string'
                             })
-  email = fields.Email(required=True,
-                       error_messages={
-                         'required': 'this field is mandatory',
-                         'invalid': 'invalid, pass a valid email address'
-                       })
   dob = fields.Date(required=True,
                     error_messages={
                       'required': 'this field is mandatory',
@@ -47,14 +42,15 @@ class UserRegistrationSchema(BaseSchema):
                           })
 
 
-class UserVerificationSchema(BaseSchema):
-  uuid = fields.UUID(required=True,
-                     error_messages={
-                       'required': 'this field is mandatory.',
-                       'invalid': 'invalid, pass a UUID.'
-                     })
+class UserRegistrationSchema(BaseSchema):
+  token = fields.String(required=True,
+                        error_messages={
+                          'required': 'this field is mandatory. Send a valid JWT from Google.',
+                        })
 
-  verification_code = fields.Integer(required=True,
+
+class UserVerificationSchema(BaseSchema):
+  code = fields.Integer(required=True,
                                      error_messages={
                                        'required': 'this field is mandatory.',
                                        'invalid': 'invalid, pass a 6-digit integer.'

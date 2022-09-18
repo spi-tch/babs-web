@@ -1,21 +1,22 @@
+import logging
 import os
 
 from flask import Blueprint, request
 
-from exceptions import DuplicateUserException
-from schema import UserVerificationSchema, validate_request, UserRegistrationSchema
+from schema import UserVerificationSchema, validate_request, UserRegistrationSchema, UserUpdateSchema
 import services
+from services import build_user_object
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
 
-register = Blueprint('register', __name__)
-verify = Blueprint('verify', __name__)
+user = Blueprint('register', __name__)
 
+logger = logging.getLogger(__name__)
 user_service = services.UserService()
 
 
-@register.route(f'/{VERSION}/user/register', methods=['POST'])
-def register_user():
+@user.route(f'/{VERSION}/user/login', methods=['POST'])
+def register_or_login():
   request_data = request.json
   valid, data = validate_request(request_data, UserRegistrationSchema())
 
@@ -24,23 +25,65 @@ def register_user():
     return message, 400
 
   try:
-    status, message, user_info = user_service.create_user(data)
+    status, message, user_info = user_service.login_or_register(data)
     if status:
       message = {'success': True, 'message': message, 'data': user_info}
       return message, 200
     message = {'success': False, 'message': message}
     return message, 400
-  except DuplicateUserException as d:
-    message = {'success': False, 'message': f'{d}'}
-    return message, 400
+  except ValueError as e:
+    logger.error(e)
+    message = {'success': False, 'message': f'{e}'}
+    return message, 401
   except Exception as e:
+    logger.error(e)
     message = {'success': False, 'message': f'Unable to register user.'}
     return message, 500
 
 
-@verify.route(f'/{VERSION}/user/verify', methods=['POST'])
-def verify_user():
+@user.route(f'/{VERSION}/user/update', methods=['POST'])
+def update_user():
   request_data = request.json
+  valid, data = validate_request(request_data, UserUpdateSchema())
+
+  if not valid:
+    message = {'errors': data, 'success': False}
+    return message, 400
+
+  try:
+    status, message, user_info = user_service.update_user(data, request.environ['user'])
+    if status:
+      message = {'success': True, 'message': message, 'data': user_info}
+      return message, 200
+    message = {'success': False, 'message': message}
+    return message, 400
+  except Exception as e:
+    logger.error(e)
+    message = {'success': False, 'message': 'Unable to update user info'}
+    return message, 500
+
+
+@user.route(f'/{VERSION}/user/code', methods=['POST'])
+def send_verification_code():
+  user_info = request.environ['user']
+
+  try:
+    if not user_info:
+      message = {'success': True, 'message': 'Unable to find user.'}
+      return message, 404
+
+    user_service.send_verification(user_info)
+    message = {"success": True, "message": "Verification code sent"}
+    return message, 200
+
+  except Exception as e:
+    logger.error(f"Unable to fetch user.", e)
+    return {"success": False, "message": "Unable to send verification code."}, 500
+
+
+@user.route(f'/{VERSION}/user/verify', methods=['POST'])
+def verify_user():
+  request_data = request.args
   valid, data = validate_request(request_data, UserVerificationSchema())
 
   if not valid:
@@ -48,7 +91,7 @@ def verify_user():
     return message, 400
 
   try:
-    status, message = user_service.verify_user(data)
+    status, message = user_service.verify_user(request.environ['user'], data['code'])
     if status:
       message = {'success': True, 'message': message}
       return message, 200
@@ -58,3 +101,20 @@ def verify_user():
     message = {'success': False, 'message': 'Unable to verify user'}
     print(e)
     return message, 500
+
+
+@user.route(f'/{VERSION}/user', methods=['GET'])
+def get_user():
+  user_info = request.environ['user']
+  try:
+    if not user_info:
+      message = {'success': True, 'message': 'Unable to find user.'}
+      return message, 404
+
+    user_info = build_user_object(user_info)
+    message = {"success": True, "message": "Found user", "data": user_info}
+    return message, 200
+
+  except Exception as e:
+    logger.error(f"Unable to fetch user.", e)
+    return {"success": False, "message": "Unable to get user info. Contact admin."}, 500
