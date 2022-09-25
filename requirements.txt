@@ -17,3 +17,4 @@ psycopg2-binary
 google-auth==2.6.0
 alembic~=1.8.1
 sentry-sdk==1.9.5
+blinker==1.5
