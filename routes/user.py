@@ -3,7 +3,7 @@ import os
 
 from flask import Blueprint, request
 
-from schema import UserVerificationSchema, validate_request, UserRegistrationSchema, UserUpdateSchema
+from schema import UserVerificationSchema, validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 import services
 from services import build_user_object
 
@@ -93,6 +93,7 @@ def verify_user():
   try:
     status, message = user_service.verify_user(request.environ['user'], data['code'])
     if status:
+        # todo: Tell they have been successfully verified.
       message = {'success': True, 'message': message}
       return message, 200
     message = {'success': False, 'message': message}
@@ -118,3 +119,24 @@ def get_user():
   except Exception as e:
     logger.error(f"Unable to fetch user.", e)
     return {"success": False, "message": "Unable to get user info. Contact admin."}, 500
+
+
+@user.route(f'/{VERSION}/wait', methods=['POST'])
+def add_user_to_waitlist():
+  request_data = request.json
+  valid, data = validate_request(request_data, WaitlistSchema())
+  try:
+    if not valid:
+      message = {'success': False, 'errors': data}
+      return message, 400
+
+    if user_service.add_to_waitlist(data['email']):
+      message = {"success": True, "message": "email added to waitlist"}
+      return message, 200
+
+    message = {"success": True, "message": "email added to waitlist"}
+    return message, 200
+
+  except Exception as e:
+    logger.error(f"Unable to fetch user.", e)
+    return {"success": False, "message": "Unable to add user to waitlist"}, 500

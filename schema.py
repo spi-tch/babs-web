@@ -51,10 +51,18 @@ class UserRegistrationSchema(BaseSchema):
 
 class UserVerificationSchema(BaseSchema):
   code = fields.Integer(required=True,
-                                     error_messages={
-                                       'required': 'this field is mandatory.',
-                                       'invalid': 'invalid, pass a 6-digit integer.'
-                                     })
+                        error_messages={
+                          'required': 'this field is mandatory.',
+                          'invalid': 'invalid, pass a 6-digit integer.'
+                        })
+
+
+class WaitlistSchema(BaseSchema):
+  email = fields.Email(required=True,
+                       error_messages={
+                         'required': 'this field is mandatory.',
+                         'invalid': 'invalid, use a valid email address'
+                       })
 
 
 def validate_request(json_object, schema: BaseSchema):

@@ -2,6 +2,7 @@ import os
 from random import randint
 
 from flask import Flask
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 from config import APP_CONFIG
@@ -29,6 +30,8 @@ def create_app():
   from middleware import Middleware
   app.wsgi_app = Middleware(app.wsgi_app)
 
+  db.create_all()
+  migrate = Migrate(app, db)
   return app
 
 

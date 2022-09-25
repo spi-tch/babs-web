@@ -36,3 +36,10 @@ class VerificationRequest(db.Model):
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
   verification_code = db.Column(db.Integer, nullable=False)
+
+
+class WaitList(db.Model):
+  __tablename__ = 'wait_list'
+  id = db.Column(db.Integer, primary_key=True)
+  created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+  email = db.Column(db.String, nullable=False, index=True)

@@ -8,7 +8,7 @@ from google.oauth2.id_token import verify_oauth2_token
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
-from data_access import User, VerificationRequest, DBQuery
+from data_access import User, VerificationRequest, DBQuery, WaitList
 from exceptns import UserNotFoundException
 from util.app import db, get_phone_number, generate_code
 from util.twilio import send_verification_code
@@ -198,5 +198,23 @@ class UserService:
     except OperationalError:
       db.session.rollback()
       return False, 'Unable to save verification code'
+    finally:
+      db.session.close()
+
+  @classmethod
+  def add_to_waitlist(cls, email) -> bool:
+    try:
+      if waiter := WaitList.query.filter(WaitList.email == email).first():
+        return True
+      else:
+        waiter = WaitList(
+          email=email,
+        )
+        db.session.add(waiter)
+      db.session.commit()
+      return True
+    except OperationalError:
+      db.session.rollback()
+      return False
     finally:
       db.session.close()

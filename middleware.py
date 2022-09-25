@@ -11,7 +11,7 @@ import services
 from exceptns import UserNotFoundException
 from routes.user import VERSION
 
-SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login', f'/{VERSION}/admin/find_user']
+SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login', f'/{VERSION}/admin/find_user', f'/{VERSION}/wait', '/']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
