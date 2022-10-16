@@ -2,6 +2,7 @@ import os
 from random import randint
 
 from flask import Flask
+from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -19,6 +20,9 @@ def create_app():
   app = Flask(__name__, template_folder=template_dir)
   app.config.from_object(APP_CONFIG[conf_name])
   APP_CONFIG[conf_name].init_app(app)
+
+# Enable CORS for all routes
+  CORS(app)
 
 # DB Configuration
   configure_db(app)
