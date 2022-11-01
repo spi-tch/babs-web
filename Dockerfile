@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt /app/requierments.txt
 COPY . /app
+RUN apt-get install libgeos-dev
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 
