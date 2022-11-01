@@ -24,6 +24,7 @@ jobs:
 
     outputs:
       image: ${{ steps.build-image.outputs.image }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -60,6 +61,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -67,6 +69,18 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: 'no'
+
+    - name: Deploy
+      uses: deliverybot/helm@v1
+      with:
+        command: upgrade
+        release: babs
+        chart: ./k8s
+        namespace: default
+        values: ./k8s/staging-values.yml
+       env:
+        KUBECONFIG_FILE: ${{ secrets.KUBECONFIG }}
+
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -90,10 +104,3 @@ jobs:
           TWILIO_WA_PHONE_NUMBER=${{ secrets.TWILIO_WA_PHONE_NUMBER }}
           TWILIO_SID=${{ secrets.TWILIO_SID }}
           TWILIO_TOKEN=${{ secrets.TWILIO_TOKEN }}
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ env.ECS_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
