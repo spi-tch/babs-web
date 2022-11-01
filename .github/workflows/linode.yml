@@ -39,9 +39,6 @@ jobs:
       uses: docker/metadata-action@v3
       with:
         images: ${{ env.REPOSITORY }}
-        flavor: |
-          latest=${{ github.ref == 'refs/heads/staging' }}
-          short-sha=${{ startsWith(github.ref, 'refs/tags/') }}
 
     - name: Build, tag, and push image to Docker Hub
       uses: docker/build-push-action@v2
