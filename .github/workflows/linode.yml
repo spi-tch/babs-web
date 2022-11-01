@@ -62,7 +62,7 @@ jobs:
     - name: Checkout staging
       uses: actions/checkout@v3
     - name: Deployment
-      uses: deliverybot/helm@v1
+      uses: helm/chart-releaser-action@v1.4.1
       with:
         command: upgrade
         release: babs
