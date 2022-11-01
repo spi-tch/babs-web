@@ -11,7 +11,11 @@ import services
 from exceptns import UserNotFoundException
 from routes.user import VERSION
 
-SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login', f'/{VERSION}/admin/find_user', f'/{VERSION}/wait', '/']
+SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
+                       f'/{VERSION}/admin/find_user',
+                       f'/{VERSION}/wait', '/',
+                       '/auth_callback',
+                       '/v0/auth']  # todo: remove this...
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
@@ -34,12 +38,13 @@ class Middleware:
     try:
       claims = verify_oauth2_token(auth.split(" ")[1], requests.Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
     except ValueError as e:
-      res = Response(json.dumps({'error': f'Invalid authorization. {e}'}), mimetype='application/json', status=401)
+      logger.error(e)
+      res = Response(json.dumps({"error": f"Invalid authorization. {e}"}), mimetype='application/json', status=401)
       return res(environ, start_response)
 
     if not claims['email_verified']:
-      res = Response(json.dumps({'error': 'User is not registered by Google.'}),
-                     mimetype='application/json', status=401)
+      res = Response(json.dumps({"error": "User is not registered by Google."}),
+                     mimetype="application/json", status=401)
       return res(environ, start_response)
 
     __id__: uuid.UUID = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])

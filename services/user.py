@@ -11,6 +11,7 @@ from sqlalchemy.exc import OperationalError
 from data_access import User, VerificationRequest, DBQuery, WaitList
 from exceptns import UserNotFoundException
 from util.app import db, get_phone_number, generate_code
+from util.kg import update_kg_with_user
 from util.twilio import send_verification_code
 
 logger = logging.getLogger()
@@ -92,7 +93,7 @@ class UserService:
       code_record = VerificationRequest.query.filter(VerificationRequest.verification_code == code,
                                                      VerificationRequest.user_id == user.uuid)
       if code_record.first():
-        status, message, _ = cls.update_user({
+        status, message, user = cls.update_user({
           'verified': True,
           'uuid': user.uuid
         })
@@ -100,6 +101,11 @@ class UserService:
           return False, message
         cls.delete_verification_code(code_record)
         db.session.commit()
+
+        # Update knowledge Graph
+        kg_thread = Thread(target=update_kg_with_user, args=[user])
+        kg_thread.start()
+
         return True, 'Successfully verified user.'
       db.session.commit()
       return False, 'code is invalid (incorrect)'
@@ -115,8 +121,7 @@ class UserService:
     Ensure you commit the session after deletion.
     """
     try:
-      count = data.delete(synchronize_session='evaluate')
-      print(count)
+      _ = data.delete(synchronize_session='evaluate')
     except Exception as e:
       logger.error(e)
 
@@ -127,6 +132,10 @@ class UserService:
         user = cls.find_user(request['uuid'])
       except KeyError:
         return False, 'uuid is missing', {}
+
+    if "phone_number" in request.keys():
+      if request["phone_number"] != user.phone_number:
+        request["verified"] = False
 
     old_phone = user.phone_number
     old_channel = user.channel
@@ -204,7 +213,7 @@ class UserService:
   @classmethod
   def add_to_waitlist(cls, email) -> bool:
     try:
-      if waiter := WaitList.query.filter(WaitList.email == email).first():
+      if _ := WaitList.query.filter(WaitList.email == email).first():
         return True
       else:
         waiter = WaitList(

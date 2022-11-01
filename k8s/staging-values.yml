@@ -1,0 +1,69 @@
+replicaCount: 2
+
+image:
+  repository: temibabs/babs
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  name: babs-service
+  type: ClusterIP
+  externalPort: 80
+  internalPort: 5000
+
+ingress:
+  enabled: true
+  hosts:
+    - host: staging-api.babs.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/ssl-passthrough: "true"
+    ingress.kubernetes.io/secure-backends: "true"
+  tls: []
+
+resources: {}
+
+envs:
+  - name: LOG_LEVEL
+    value: error
+  - name: BABS_APP_VERSION
+    value: 0
+  - name: DB_HOST
+    value: lin-11195-2961-pgsql-primary.servers.linodedb.net
+  - name: DB_PASS
+    valueFrom:
+      secretKeyRef:
+        name: babs-web
+        key: db_pass
+  - name: DB_PORT
+    value: 5432
+  - name: DB_SCHEME
+    value: postgresql
+  - name: DB_USER
+    valueFrom:
+      secretKeyRef:
+        name: babs-web
+        key: db_user
+  - name: DB_NAME
+    value: babs-app
+  - name: FLASK_CONFIG
+    value: prod
+  - name: TWILIO_WA_PHONE_NUMBER
+    valueFrom:
+      secretKeyRef:
+        name: babs-web
+        key: twilio_wa_phone_number
+  - name: TWILIO_SID
+    valueFrom:
+      secretKeyRef:
+        name: babs-web
+        key: twilio_sid
+  - name: TWILIO_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: babs-web
+        key: twilio_token

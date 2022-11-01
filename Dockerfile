@@ -15,4 +15,3 @@ COPY start.sh /usr/start.sh
 RUN chmod +x /usr/start.sh
 
 CMD ["sh", "/usr/start.sh"]
-

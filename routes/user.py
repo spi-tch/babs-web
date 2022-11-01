@@ -9,7 +9,7 @@ from services import build_user_object
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
 
-user = Blueprint('register', __name__)
+user = Blueprint('user', __name__)
 
 logger = logging.getLogger(__name__)
 user_service = services.UserService()
@@ -100,7 +100,6 @@ def verify_user():
     return message, 400
   except Exception as e:
     message = {'success': False, 'message': 'Unable to verify user'}
-    print(e)
     return message, 500
 
 

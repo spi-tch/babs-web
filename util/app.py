@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-from config import APP_CONFIG
+from config import APP_CONFIG, APP_SECRET_KEY
 
 db: SQLAlchemy = None
 
@@ -45,9 +45,11 @@ def register_blueprint(app):
 # Users
   app.register_blueprint(routes.user.user)
   app.register_blueprint(routes.admin.find)
+  app.register_blueprint(routes.auth.auth)
 
 # Home
   app.register_blueprint(routes.home.home)
+  app.secret_key = APP_SECRET_KEY
 
 
 def configure_db(app: Flask):
