@@ -68,12 +68,3 @@ jobs:
         apt-get update && apt-get install -y helm kubectl
         export KUBECONFIG=./staging-kubeconfig.yml
         helm upgrade --install babs-web ./k8s --namespace babs --values ./k8s/staging-values.yml --set image.tag=${{ needs.build.outputs.image }}
-
-      with:
-        command: upgrade
-        release: babs
-        chart: ./k8s
-        namespace: default
-        values: ./k8s/staging-values.yml
-      env:
-        KUBECONFIG_FILE: ${{ secrets.KUBECONFIG }}
