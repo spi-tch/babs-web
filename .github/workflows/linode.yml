@@ -59,8 +59,8 @@ jobs:
     needs: build
 
     steps:
-#     - name: Checkout staging
-#       uses: actions/checkout@v3
+    - name: Checkout staging
+      uses: actions/checkout@v3
     - name: Deployment
       uses: deliverybot/helm@v1
       with:
@@ -69,5 +69,5 @@ jobs:
         chart: ./k8s
         namespace: default
         values: ./k8s/staging-values.yml
-       env:
+      env:
         KUBECONFIG_FILE: ${{ secrets.KUBECONFIG }}
