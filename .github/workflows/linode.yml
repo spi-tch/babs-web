@@ -67,4 +67,4 @@ jobs:
         echo "Deploying to Linode"
         sudo apt-get update && apt-get install -y helm kubectl
         sudo export KUBECONFIG=./staging-kubeconfig.yml
-        sudo helm upgrade --install babs-web ./k8s --namespace babs --values ./k8s/staging-values.yml --set image.tag=${{ needs.build.outputs.image }}
+        sudo helm upgrade --install babs-web ./k8s --values ./k8s/staging-values.yml
