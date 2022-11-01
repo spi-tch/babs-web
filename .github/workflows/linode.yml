@@ -80,27 +80,3 @@ jobs:
         values: ./k8s/staging-values.yml
        env:
         KUBECONFIG_FILE: ${{ secrets.KUBECONFIG }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: ${{ env.ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ needs.build.outputs.image }}
-        environment_variables: |
-          LOG_LEVEL=error
-          BABS_APP_VERSION=0
-          DB_HOST=babs-test.cwt37uawctih.eu-west-2.rds.amazonaws.com
-          DB_PASS=${{ secrets.DB_PASS }}
-          DB_PORT=5432
-          DB_SCHEME=postgresql
-          DB_USER=${{ secrets.DB_USER }}
-          DB_NAME=babs-app
-          FLASK_CONFIG=prod
-          TWILIO_WA_PHONE_NUMBER=${{ secrets.TWILIO_WA_PHONE_NUMBER }}
-          TWILIO_SID=${{ secrets.TWILIO_SID }}
-          TWILIO_TOKEN=${{ secrets.TWILIO_TOKEN }}
