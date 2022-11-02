@@ -11,6 +11,7 @@ COPY . /app
 RUN apt-get update && apt-get install libgeos-dev git -y
 RUN git config --global user.email $GIT_USER
 RUN git config --global user.password $GIT_PASSWORD
+
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 RUN ssh-keyscan -t rsa github.com >>~/.ssh/known_hosts
