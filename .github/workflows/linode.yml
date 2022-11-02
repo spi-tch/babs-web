@@ -45,7 +45,7 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: latest
         labels: ${{ steps.meta.outputs.labels }}
 
     - run: echo ${{ steps.build-image.outputs.image }}
