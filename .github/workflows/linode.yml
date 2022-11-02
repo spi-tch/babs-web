@@ -6,12 +6,7 @@ on:
       - staging
 
 env:
-  AWS_REGION: eu-west-2
-  REPOSITORY: temibabs/babs
-  ECS_SERVICE: babs-app
-  ECS_CLUSTER: babs-staging
-  ECS_TASK_DEFINITION: task-definition.json
-  CONTAINER_NAME: babs-app
+  KUBECONFIG: staging-kubeconfig.yml
 
 permissions:
   contents: read
@@ -70,5 +65,4 @@ jobs:
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh
-        sudo export KUBECONFIG=./staging-kubeconfig.yml
         sudo helm upgrade --install babs-web ./k8s --values ./k8s/staging-values.yml
