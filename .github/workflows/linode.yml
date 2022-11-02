@@ -66,5 +66,5 @@ jobs:
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh
-        kubectl config view --raw
+        kubectl config view --raw > $KUBECONFIG
         helm upgrade --install babs-web ./k8s --values ./k8s/staging-values.yml
