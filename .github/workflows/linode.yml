@@ -42,7 +42,9 @@ jobs:
       with:
         context: .
         file: ./Dockerfile
-        options: --build-arg GIT_USER=${{ secrets.GITHUB_USER }} --build-arg GIT_PASSWORD=${{ secrets.GIT_PASSWORD }}
+        build-args: |
+          GIT_USER=${{ secrets.GITHUB_USER }}
+          GIT_PASSWORD=${{ secrets.GIT_PASSWORD }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
