@@ -7,6 +7,7 @@ on:
 
 env:
   KUBECONFIG: staging-kubeconfig.yml
+  REPOSITORY: temibabs/babs
 
 permissions:
   contents: read
