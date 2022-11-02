@@ -2,8 +2,9 @@ replicaCount: 2
 
 image:
   repository: temibabs/babs
-  tag: latest
+  tag: staging
   pullPolicy: IfNotPresent
+  pullSecrets: regcred
 
 service:
   name: babs-service
@@ -14,10 +15,9 @@ service:
 ingress:
   enabled: true
   hosts:
-    - host: staging-api.babs.ai
+    - host: api.babs.ai
       paths:
-        - path: /
-          pathType: Prefix
+        - "/"
   annotations:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
@@ -33,37 +33,22 @@ envs:
   - name: BABS_APP_VERSION
     value: 0
   - name: DB_HOST
-    value: lin-11195-2961-pgsql-primary.servers.linodedb.net
+    value: "lin-11195-2961-pgsql-primary.servers.linodedb.net"
   - name: DB_PASS
-    valueFrom:
-      secretKeyRef:
-        name: babs-web
-        key: db_pass
+    value: "bEV4k8sct#UP5FvZ"
   - name: DB_PORT
-    value: 5432
+    value: "5432"
   - name: DB_SCHEME
     value: postgresql
   - name: DB_USER
-    valueFrom:
-      secretKeyRef:
-        name: babs-web
-        key: db_user
+    value: linpostgres
   - name: DB_NAME
     value: babs-app
   - name: FLASK_CONFIG
     value: prod
   - name: TWILIO_WA_PHONE_NUMBER
-    valueFrom:
-      secretKeyRef:
-        name: babs-web
-        key: twilio_wa_phone_number
+    value: +14155238886
   - name: TWILIO_SID
-    valueFrom:
-      secretKeyRef:
-        name: babs-web
-        key: twilio_sid
+    value: AC15d2e71dbdc0d9289158abe54d6c2ad3
   - name: TWILIO_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: babs-web
-        key: twilio_token
+    value: bd283e728d36ff5f34ec776b9116b9c5
