@@ -6,7 +6,7 @@ on:
       - staging
 
 env:
-  KUBECONFIG: staging-kubeconfig.yml
+  KUBECONFIG: ./staging-kubeconfig.yml
   REPOSITORY: temibabs/babs
 
 permissions:
