@@ -21,4 +21,4 @@ sentry-sdk==1.9.5
 blinker==1.5
 pycountry~=20.7.3
 neomodel~=4.0.8
-git+ssh://git@github.com/Babs-Technologies/kg.git@staging
+git+https://github.com/Babs-Technologies/kg.git@staging
