@@ -76,4 +76,4 @@ jobs:
         ./get_helm.sh
 
         kubectl config view --raw
-        helm upgrade --install babs-web ./k8s --values ./k8s/staging-values.yaml
+        helm upgrade --install babs-web ./k8s --values ./k8s/staging-values.yaml --set image.tag=${{ IMAGE_TAG }}
