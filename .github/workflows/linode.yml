@@ -45,10 +45,8 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: staging
+        tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-
-    - run: echo ${{ steps.build-image.outputs.image }}
 
   deploy:
     name: Deploy to Linode
