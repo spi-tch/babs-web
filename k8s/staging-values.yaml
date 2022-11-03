@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: temibabs/babs
-  tag: latest
+  tag: staging
   pullPolicy: Always
   pullSecrets: regcred
 
