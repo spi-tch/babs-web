@@ -36,12 +36,12 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: ${{ env.REPOSITORY }}
-      tags: |
-        type=ref,event=branch
-        type=semver,pattern={{version}}
-        type=semver,pattern={{major}}.{{minor}}
-      flavor: |
-        latest=true
+        tags: |
+          type=ref,event=branch
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+        flavor: |
+          latest=true
 
     - name: Build, tag, and push image to Docker Hub
       uses: docker/build-push-action@v3
