@@ -13,4 +13,4 @@ spec:
       protocol: TCP
       name: {{ .Values.service.name }}
   selector:
-    app: {{ template "k8s.name" . }}
+    app: {{ include "k8s.name" . }}

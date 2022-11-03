@@ -4,16 +4,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ template "k8s.fullname" . }}
-  labels:
-    app: {{ template "k8s.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+  name: {{ include "k8s.fullname" . }}
   annotations:
-    {{- range $key, $value := .Values.ingress.annotations }}
-      {{ $key }}: {{ $value | quote }}
-    {{- end }}
+    kubernetes.io/ingress.class: nginx
 spec:
   rules:
     {{- range .Values.ingress.hosts }}
@@ -21,7 +14,7 @@ spec:
       http:
         paths:
         {{- range .paths }}
-          - path: {{ . }}
+          - path: {{ . | quote }}
             pathType: ImplementationSpecific
             backend:
               service:
