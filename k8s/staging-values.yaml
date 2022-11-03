@@ -45,7 +45,7 @@ envs:
   - name: DB_NAME
     value: babs-app
   - name: FLASK_CONFIG
-    value: prod
+    value: test
   - name: TWILIO_WA_PHONE_NUMBER
     value: +14155238886
   - name: TWILIO_SID
