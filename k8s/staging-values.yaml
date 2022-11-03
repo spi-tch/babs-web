@@ -43,7 +43,7 @@ envs:
   - name: DB_USER
     value: linpostgres
   - name: DB_NAME
-    value: babs-app
+    value: babs
   - name: FLASK_CONFIG
     value: test
   - name: TWILIO_WA_PHONE_NUMBER
