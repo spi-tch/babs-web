@@ -52,7 +52,7 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: ${{ env.IMAGE_TAG }}
+        tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
   deploy:

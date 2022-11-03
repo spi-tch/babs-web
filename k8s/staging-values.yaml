@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: temibabs/babs
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   pullSecrets: regcred
 
 service:
