@@ -133,6 +133,7 @@ def add_user_to_waitlist():
       message = {"success": True, "message": "email added to waitlist"}
       return message, 200
 
+    # return success even if email addition fails
     message = {"success": True, "message": "email added to waitlist"}
     return message, 200
 

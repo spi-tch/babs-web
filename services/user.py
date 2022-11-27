@@ -221,7 +221,7 @@ class UserService:
           email=email,
         )
         db.session.add(waiter)
-        Thread(target=send_email, args=email).start()
+        Thread(target=send_email, args=[email]).start()
       db.session.commit()
       return True
     except OperationalError:
