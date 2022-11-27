@@ -12,6 +12,7 @@ from data_access import User, VerificationRequest, DBQuery, WaitList
 from exceptns import UserNotFoundException
 from util.app import db, get_phone_number, generate_code
 from util.kg import update_kg_with_user
+from util.mailgun import send_email
 from util.twilio import send_verification_code
 
 logger = logging.getLogger()
@@ -220,6 +221,7 @@ class UserService:
           email=email,
         )
         db.session.add(waiter)
+        Thread(target=send_email, args=email).start()
       db.session.commit()
       return True
     except OperationalError:

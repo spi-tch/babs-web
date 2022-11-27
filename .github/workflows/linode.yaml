@@ -32,18 +32,6 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-    - name: Extract metadata for Docker
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: ${{ env.REPOSITORY }}
-        tags: |
-          type=ref,event=branch
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-        flavor: |
-          latest=true
-
     - name: Build, tag, and push image to Docker Hub
       uses: docker/build-push-action@v3
       id: build-image
@@ -53,8 +41,9 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }},${{ env.REPOSITORY }}:latest
+
+
 
   deploy:
     name: Deploy to Linode
