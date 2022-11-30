@@ -7,7 +7,7 @@ import requests
 MAILGUN_API_KEY = os.getenv("MAILGUN_API_KEY")
 logger = logging.getLogger(__name__)
 
-with open("static/welcome.html") as f:
+with open("util/static/welcome.html") as f:
   html_text = f.read()
 
 
