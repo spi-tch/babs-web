@@ -7,7 +7,7 @@ import requests
 MAILGUN_API_KEY = os.getenv("MAILGUN_API_KEY")
 logger = logging.getLogger(__name__)
 
-with open("util/static/welcome.html") as f:
+with open("static/welcome.html") as f:
   html_text = f.read()
 
 
@@ -30,3 +30,7 @@ def send_email(email: str):
               "address": [email]})
   except Exception as e:
     logger.error("Unable to send email.", e)
+
+
+if __name__ == "__main__":
+  send_email("temi.ayo.babs@gmail.com")
