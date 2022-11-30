@@ -14,6 +14,7 @@ from routes.user import VERSION
 SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
                        f'/{VERSION}/admin/find_user',
                        f'/{VERSION}/wait', '/',
+                       f'/logo', f'/logowtext',
                        '/auth_callback',
                        '/v0/auth']  # todo: remove this...
 

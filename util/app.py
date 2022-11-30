@@ -51,6 +51,9 @@ def register_blueprint(app):
   app.register_blueprint(routes.home.home)
   app.secret_key = APP_SECRET_KEY
 
+# Files
+  app.register_blueprint(routes.file.file)
+
 
 def configure_db(app: Flask):
   global db
