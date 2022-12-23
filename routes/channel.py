@@ -43,16 +43,16 @@ def get_channels():
     return {'message': 'Unable to get channels', 'success': False}, 500
 
 
-@channel.route(f'/{VERSION}/channel', methods=['GET'])
-def get_channel():
-  try:
-    status, message, data = channel_service.get_channel(request.environ['user'].uuid)
-    if not status:
-      return {'message': message, 'success': False}, 400
-    return {'message': message, 'success': True, 'data': data}, 200
-  except Exception as e:
-    logger.error(e)
-    return {'message': 'Unable to get channel', 'success': False}, 500
+# @channel.route(f'/{VERSION}/channel', methods=['GET'])
+# def get_channel():
+#   try:
+#     status, message, data = channel_service.get_channel(request.environ['user'].uuid)
+#     if not status:
+#       return {'message': message, 'success': False}, 400
+#     return {'message': message, 'success': True, 'data': data}, 200
+#   except Exception as e:
+#     logger.error(e)
+#     return {'message': 'Unable to get channel', 'success': False}, 500
 
 
 @channel.route(f'/{VERSION}/channel/<channel_id>', methods=['GET'])

@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
 from data_access import VerificationRequest, Channel
@@ -14,6 +15,20 @@ class ChannelService:
   def create_channel(cls, channel: str, user: str) -> [bool, str, dict]:
     verification_code = generate_code()
     try:
+      request = VerificationRequest.query.filter_by(user_id=user).first()
+      if request:
+        statement = (update(VerificationRequest)
+                     .where(VerificationRequest.user_id == user)
+                     .values({"verification_code": verification_code})
+                     .execution_options(synchronize_session=False))
+
+        db.session.execute(statement=statement)
+        db.session.commit()
+
+        return True, 'Verification request created.', {
+          'verification_code': verification_code
+        }
+
       verification_request = VerificationRequest(
         channel=channel,
         user_id=user,
@@ -24,6 +39,7 @@ class ChannelService:
       return True, 'Verification request created.', {
         'verification_code': verification_code
       }
+
     except OperationalError as e:
       db.session.rollback()
       logger.error('Unable to create verification request.', e)
