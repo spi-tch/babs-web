@@ -13,15 +13,15 @@ logger = logging.getLogger(__name__)
 channel_service = services.ChannelService()
 
 
-@channel.route(f'/{VERSION}/channel', methods=['POST'])
-def add_channel():
-  channel = request.args.get('name')
+@channel.route(f'/{VERSION}/channel/<channel>', methods=['POST'])
+def add_channel(channel):
+  channel_name = request.view_args["channel"]
 
-  if not channel:
+  if not channel_name:
     return {'message': 'Channel name is required', 'success': False}, 400
 
   try:
-    status, message, data = channel_service.create_channel(channel, request.environ['user'].uuid)
+    status, message, data = channel_service.create_channel(channel_name, request.environ['user'].uuid)
     if not status:
       return {'message': message, 'success': False}, 400
     return {'message': message, 'success': True, 'data': data}, 200
