@@ -6,11 +6,6 @@ class BaseSchema(Schema):
 
 
 class UserUpdateSchema(BaseSchema):
-  phone_number = fields.String(required=True,
-                               error_messages={
-                                 'required': 'this field is mandatory',
-                                 'invalid': 'invalid, pass a string'
-                               })
   first_name = fields.String(required=True,
                              error_messages={
                                'required': 'this field is mandatory',
@@ -32,13 +27,6 @@ class UserUpdateSchema(BaseSchema):
                           error_messages={
                             'required': 'this field is mandatory',
                             'invalid': 'use the Alpha-2 country code, e.g. NG'
-                          })
-  channel = fields.String(required=True,
-                          validate=validate.OneOf(choices=['whatsapp', 'telegram'],
-                                                  error='Supported channels are whatsapp & telegram.'),
-                          error_messages={
-                            'required': 'this field is mandatory',
-                            'invalid': 'Supported channels are whatsapp & telegram.'
                           })
 
 
@@ -63,6 +51,19 @@ class WaitlistSchema(BaseSchema):
                          'required': 'this field is mandatory.',
                          'invalid': 'invalid, use a valid email address'
                        })
+
+
+class GetChannelSchema(BaseSchema):
+  user_uuid = fields.String(required=True,
+                            error_messages={
+                              'required': 'this field is mandatory.',
+                              'invalid': 'invalid, pass a valid string.'
+                            })
+  channel = fields.String(required=True,
+                          error_messages={
+                            'required': 'this field is mandatory.',
+                            'invalid': 'channel must be valid.'
+                          })
 
 
 def validate_request(json_object, schema: BaseSchema):

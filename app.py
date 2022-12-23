@@ -16,4 +16,4 @@ app = create_app()
 
 
 if __name__ == '__main__':
-  app.run(port=os.getenv('BABS_APP_PORT'))
+  app.run(host="0.0.0.0", port=os.getenv('BABS_APP_PORT'))

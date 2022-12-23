@@ -15,8 +15,7 @@ SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
                        f'/{VERSION}/admin/find_user',
                        f'/{VERSION}/wait', '/',
                        f'/logo', f'/logowtext',
-                       '/auth_callback',
-                       '/v0/auth']  # todo: remove this...
+                       '/auth_callback']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
@@ -52,7 +51,6 @@ class Middleware:
     try:
       user = user_service.find_user(__id__)
       environ['user'] = user
-      return self.app(environ, start_response)
     except UserNotFoundException:
       res = Response(json.dumps({'error': 'User is not registered by babs.ai'}),
                      mimetype='application/json', status=401)
@@ -62,3 +60,5 @@ class Middleware:
       res = Response(json.dumps({'error': 'Could not authenticate user. Contact admin'}),
                      mimetype='application/json', status=500)
       return res(environ, start_response)
+
+    return self.app(environ, start_response)
