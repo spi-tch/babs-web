@@ -2,7 +2,6 @@ import logging
 import os
 
 from flask import Blueprint, request, jsonify
-from flask_cors import cross_origin
 
 import services
 
@@ -15,7 +14,6 @@ channel_service = services.ChannelService()
 
 
 @channel.route(f'/{VERSION}/channel/<channel>', methods=['POST'])
-@cross_origin(origins='*', send_wildcard=False)
 def add_channel(channel):
   channel_name = request.view_args["channel"]
 
@@ -47,7 +45,6 @@ def add_channel(channel):
 
 # Get all channels for user
 @channel.route(f'/{VERSION}/channel', methods=['GET'])
-@cross_origin(origins='*', send_wildcard=False)
 def get_channels():
   try:
     status, message, data = channel_service.get_channels(request.environ['user'].uuid)
@@ -83,7 +80,6 @@ def get_channels():
 
 
 @channel.route(f'/{VERSION}/channel/<channel_id>', methods=['GET'])
-@cross_origin(origin='*', headers=['Content- Type', 'Authorization'])
 def get_channel_by_id(channel_id):
   try:
     status, message, data = channel_service.get_channel_by_id(channel_id)

@@ -21,9 +21,6 @@ def create_app():
   app.config.from_object(APP_CONFIG[conf_name])
   APP_CONFIG[conf_name].init_app(app)
 
-# Enable CORS for all routes
-  CORS(app)
-
 # DB Configuration
   configure_db(app)
 
@@ -36,24 +33,27 @@ def create_app():
 
   db.create_all()
   migrate = Migrate(app, db)
+# Enable CORS for all routes
+  CORS(app)
+
   return app
 
 
 def register_blueprint(app):
   import routes
 
-# Users
+  # Users
   app.register_blueprint(routes.user.user)
   app.register_blueprint(routes.admin.find)
   app.register_blueprint(routes.auth.auth)
   app.register_blueprint(routes.channel.channel)
 
   app.config['CORS_HEADERS'] = 'Content-Type'
-# Home
+  # Home
   app.register_blueprint(routes.home.home)
   app.secret_key = APP_SECRET_KEY
 
-# Files
+  # Files
   app.register_blueprint(routes.file.file)
 
 

@@ -80,7 +80,7 @@ class ChannelService:
       return True, 'Channels found.', [{
         'user_uuid': channel.user_uuid,
         'sender_id': channel.sender_id,
-        'channel': channel.name
+        'channel': channel.name.name
       } for channel in channels]
     except OperationalError as e:
       db.session.rollback()
