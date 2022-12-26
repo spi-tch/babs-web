@@ -30,6 +30,7 @@ class ChannelService:
         db.session.commit()
 
         return True, 'Verification request created.', {
+          'verification_code': verification_code,
           'verification_link': f"{chat_links[channel]}{verification_code}"
         }
 
