@@ -30,6 +30,9 @@ class Middleware:
     if request.path in SECURITY_EXCLUSIONS:
       return self.app(environ, start_response)
 
+    origin = request.headers.get('Origin')
+
+
     auth = request.headers.get("Authorization")
     if not auth:
       res = Response(json.dumps({'error': 'Authorization failed'}), mimetype='application/json', status=401)
