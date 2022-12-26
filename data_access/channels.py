@@ -13,7 +13,7 @@ class ChannelEnum(enum.Enum):
 
 
 class Channel(db.Model):
-  __tablename__ = 'channel'
+  __tablename__ = 'channels'
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.Enum(ChannelEnum), nullable=False)
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
