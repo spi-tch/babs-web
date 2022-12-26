@@ -53,6 +53,7 @@ class Request(db.Model):
   intent = db.Column(db.String, nullable=False, unique=True, index=True)
   description = db.Column(db.String, nullable=True)
   example = db.Column(db.String, nullable=True)
+  slots_example = db.Column(db.String, nullable=True)
 
 
 class Response(db.Model):

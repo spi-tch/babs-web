@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 import services
 
@@ -18,16 +18,26 @@ def add_channel(channel):
   channel_name = request.view_args["channel"]
 
   if not channel_name:
-    return {'message': 'Channel name is required', 'success': False}, 400
+    return jsonify({'message': 'Channel name is required', 'success': False}), 400
 
   try:
     status, message, data = channel_service.create_channel(channel_name, request.environ['user'].uuid)
     if not status:
-      return {'message': message, 'success': False}, 400
+      response = jsonify({'message': message, 'success': False})
+      response.headers.add('Access-Control-Allow-Origin', '*')
+      response.status_code = 400
+      return response
+    response = jsonify({'message': message, 'success': True, 'data': data})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.status_code = 200
     return {'message': message, 'success': True, 'data': data}, 200
   except Exception as e:
     logger.error(e)
-    return {'message': 'Unable to create channel', 'success': False}, 500
+
+    response = jsonify({'message': 'Unable to create channel', 'success': False})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.status_code = 500
+    return response
 
 
 # Get all channels for user
@@ -36,11 +46,19 @@ def get_channels():
   try:
     status, message, data = channel_service.get_channels(request.environ['user'].uuid)
     if not status:
-      return {'message': message, 'success': False}, 400
-    return {'message': message, 'success': True, 'data': data}, 200
+      response = jsonify({'message': message, 'success': False})
+      response.headers.add('Access-Control-Allow-Origin', '*')
+      return response, 400
+    response = jsonify({'message': message, 'success': True, 'data': data})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.status_code = 200
+    return response
   except Exception as e:
     logger.error(e)
-    return {'message': 'Unable to get channels', 'success': False}, 500
+    response = jsonify({'message': 'Unable to get channels', 'success': False})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.status_code = 500
+    return response
 
 
 # @channel.route(f'/{VERSION}/channel', methods=['GET'])
