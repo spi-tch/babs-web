@@ -25,10 +25,12 @@ def add_channel(channel):
     if not status:
       response = jsonify({'message': message, 'success': False})
       response.headers.add('Access-Control-Allow-Origin', '*')
+      response.headers.add('Access-Control-Allow-Credentials', 'true')
       response.status_code = 400
       return response
     response = jsonify({'message': message, 'success': True, 'data': data})
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.status_code = 200
     return {'message': message, 'success': True, 'data': data}, 200
   except Exception as e:
@@ -36,6 +38,7 @@ def add_channel(channel):
 
     response = jsonify({'message': 'Unable to create channel', 'success': False})
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.status_code = 500
     return response
 
@@ -48,15 +51,18 @@ def get_channels():
     if not status:
       response = jsonify({'message': message, 'success': False})
       response.headers.add('Access-Control-Allow-Origin', '*')
+      response.headers.add('Access-Control-Allow-Credentials', 'true')
       return response, 400
     response = jsonify({'message': message, 'success': True, 'data': data})
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.status_code = 200
     return response
   except Exception as e:
     logger.error(e)
     response = jsonify({'message': 'Unable to get channels', 'success': False})
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.status_code = 500
     return response
 
