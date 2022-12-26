@@ -59,7 +59,6 @@ class ChannelService:
       if channel is None:
         return False, 'No channel found.', None
       return True, 'Channel found.', {
-        'user_uuid': channel.user_uuid,
         'sender_id': channel.sender_id,
         'channel': channel.name,
         'verified': channel.verified
@@ -78,7 +77,6 @@ class ChannelService:
       if channels is None:
         return False, 'No channels found.', None
       return True, 'Channels found.', [{
-        'user_uuid': channel.user_uuid,
         'sender_id': channel.sender_id,
         'channel': channel.name
       } for channel in channels]
