@@ -7,6 +7,10 @@ from data_access import VerificationRequest, Channel
 from util.app import db, generate_code
 
 logger = logging.getLogger()
+chat_links = {
+  "whatsapp": "https://wa.me/",
+  "telegram": "tg://msg?to=BabsAIBot&text=",
+}
 
 
 class ChannelService:
@@ -26,7 +30,7 @@ class ChannelService:
         db.session.commit()
 
         return True, 'Verification request created.', {
-          'verification_code': verification_code
+          'verification_link': f"{chat_links[channel]}{verification_code}"
         }
 
       verification_request = VerificationRequest(
