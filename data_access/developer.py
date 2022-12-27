@@ -38,7 +38,7 @@ class API(db.Model):
 
 
 class Request(db.Model):
-  __tablename__ = 'request'
+  __tablename__ = 'requests'
   id = db.Column(db.Integer, primary_key=True)
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
@@ -62,7 +62,7 @@ class Response(db.Model):
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
-  request_id = db.Column(db.Integer, db.ForeignKey('request.id'), nullable=False)
+  request_id = db.Column(db.Integer, db.ForeignKey('requests.id'), nullable=False)
   response_code = db.Column(db.Integer, nullable=False)
   response_body = db.Column(db.String, nullable=False)
   response_type = db.Column(db.String, nullable=False)
@@ -81,6 +81,6 @@ class Parameter(db.Model):
   type = db.Column(db.Enum(ParamType), nullable=False)
   default_value = db.Column(db.String, nullable=True)
   mandatory = db.Column(db.Boolean, nullable=False, default=True)
-  request_id = db.Column(db.Integer, db.ForeignKey('request.id'), nullable=False)
+  request_id = db.Column(db.Integer, db.ForeignKey('requests.id'), nullable=False)
   entity_type = db.Column(db.String, nullable=True)
   value_type = db.Column(db.String, nullable=True)
