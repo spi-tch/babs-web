@@ -88,9 +88,9 @@ class ChannelService:
       db.session.close()
 
   @classmethod
-  def remove_channel(cls, channel_id: str) -> [bool, str]:
+  def remove_channel(cls, user_id: str, sender_id: str) -> [bool, str]:
     try:
-      channel = Channel.query.filter_by(id=channel_id).first()
+      channel = Channel.query.filter_by(sender_id=sender_id, user_uuid=user_id).first()
       if channel is None:
         return False, 'No channel found.'
       db.session.delete(channel)

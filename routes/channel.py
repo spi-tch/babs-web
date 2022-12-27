@@ -89,3 +89,15 @@ def get_channel_by_id(channel_id):
   except Exception as e:
     logger.error(e)
     return {'message': 'Unable to get channel', 'success': False}, 500
+
+
+@channel.route(f'/{VERSION}/channel', methods=['DELETE'])
+def delete_channel():
+  try:
+    status, message, data = channel_service.remove_channel(request.environ['user'].uuid, request.json['sender_id'])
+    if not status:
+      return {'message': message, 'success': False}, 400
+    return {'message': message, 'success': True, 'data': data}, 200
+  except Exception as e:
+    logger.error(e)
+    return {'message': 'Unable to delete channel', 'success': False}, 500
