@@ -7,6 +7,7 @@ from .auth import *
 from .creds import *
 from .channels import *
 from .developer import *
+from .apps import *
 
 T = TypeVar('T')
 
