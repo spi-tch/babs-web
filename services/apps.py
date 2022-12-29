@@ -13,13 +13,12 @@ class AppService:
 	
 	@classmethod
 	def add_app(cls, app_name: str, user: str) -> [bool, str, dict]:
-		
-		try:
+    
+    try:
       app = Application.query.filter_by(user_uuid=user, name=app_name).first()
       if app:
         return False, 'User already has this application.', None
-
-
+        
       app = Application(
         user_uuid=user,
         name=app_name
@@ -29,7 +28,7 @@ class AppService:
       return True, 'Appllication created.', {
         'app': app_name
       }
-
+      
     except OperationalError as e:
       db.session.rollback()
       logger.error(f'Unable to integrate {app_name} for user.', e)
