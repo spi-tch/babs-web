@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class AppService:
-  
-	@classmethod
-	def add_app(cls, app_name: str, user: str) -> [bool, str, dict]:
+  @classmethod
+  def add_app(cls, app_name: str, user: str) -> [bool, str, dict]:
     try:
       app = Application.query.filter_by(user_uuid=user, name=app_name).first()
       if app:
@@ -36,11 +35,9 @@ class AppService:
       
   @classmethod
   def get_apps(cls, user: str) -> [bool, str, list]:
-  	
-  	try:
-  		apps = Application.query.filter_by(user_uuid=user).all()
-  		
-  		if apps is None:
+    try:
+      apps = Application.query.filter_by(user_uuid=user).all()
+      if apps is None:
         return False, 'No apps found.', None
       return True, 'Apps found.', [app.name for app in apps]
     except OperationalError as e:
@@ -49,10 +46,10 @@ class AppService:
       return False, 'Unable to find apps.', None
     finally:
       db.session.close()
-	
-	@classmethod
-	def remove_app(cls, app: str, user: str) -> [bool, str]:
-		try:
+
+  @classmethod
+  def remove_app(cls, app: str, user: str) -> [bool, str]:
+    try:
       app = Application.query.filter_by(user_uuid=user, name=app).first()
       if app is None:
         return False, 'No application found.'
