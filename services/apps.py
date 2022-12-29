@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class AppService:
-	
+  
 	@classmethod
 	def add_app(cls, app_name: str, user: str) -> [bool, str, dict]:
     try:
