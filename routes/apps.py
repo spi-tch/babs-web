@@ -71,10 +71,10 @@ def get_apps():
 @apps.route(f'/{VERSION}/application', methods=['DELETE'])
 def delete_app():
   try:
-    status, message, data = app_service.remove_app(request.environ['user'].uuid, request.json['application'])
+    status, message = app_service.remove_app(request.environ['user'].uuid, request.json['application'])
     if not status:
       return {'message': message, 'success': False}, 400
-    return {'message': message, 'success': True, 'data': data}, 200
+    return {'message': message, 'success': True}, 200
   except Exception as e:
     logger.error('Unable to delete application', e)
     return {'message': 'Unable to delete application', 'success': False}, 500
