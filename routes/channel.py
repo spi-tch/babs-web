@@ -97,7 +97,7 @@ def delete_channel():
     status, message = channel_service.remove_channel(request.environ['user'].uuid, request.json['sender_id'])
     if not status:
       return {'message': message, 'success': False}, 400
-    return {'message': message, 'success': True, 'data': data}, 200
+    return {'message': message, 'success': True}, 200
   except Exception as e:
     logger.error(e)
     return {'message': 'Unable to delete channel', 'success': False}, 500
