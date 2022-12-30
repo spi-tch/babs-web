@@ -8,7 +8,7 @@ from util.app import db, generate_code
 
 logger = logging.getLogger()
 chat_links = {
-  "whatsapp": "https://wa.me/15592723662?text=",
+  "whatsapp": "https://wa.me/14155238886?text=",
   "telegram": "tg://msg?to=BabsAIBot&text=",
 }
 
