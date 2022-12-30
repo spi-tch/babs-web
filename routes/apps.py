@@ -3,7 +3,7 @@ import os
 
 import flask
 import google_auth_oauthlib.flow
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 import services
 
