@@ -6,22 +6,22 @@ class BaseSchema(Schema):
 
 
 class UserUpdateSchema(BaseSchema):
-  first_name = fields.String(required=True,
+  first_name = fields.String(required=False,
                              error_messages={
                                'required': 'this field is mandatory',
                                'invalid': 'invalid, pass a string'
                              })
-  last_name = fields.String(required=True,
+  last_name = fields.String(required=False,
                             error_messages={
                               'required': 'this field is mandatory',
                               'invalid': 'invalid, pass a string'
                             })
-  dob = fields.Date(required=True,
+  dob = fields.Date(required=False,
                     error_messages={
                       'required': 'this field is mandatory',
                       'invalid': 'invalid, pass a date in yyyy-mm-dd format'
                     })
-  country = fields.String(required=True,
+  country = fields.String(required=False,
                           validate=validate.Length(min=2, max=2,
                                                    error='use the Alpha-2 country code, e.g. NG'),
                           error_messages={
