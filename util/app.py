@@ -47,6 +47,7 @@ def register_blueprint(app):
   app.register_blueprint(routes.admin.find)
   app.register_blueprint(routes.auth.auth)
   app.register_blueprint(routes.channel.channel)
+  app.register_blueprint(routes.apps.apps)
 
   app.config['CORS_HEADERS'] = 'Content-Type'
   # Home
