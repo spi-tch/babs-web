@@ -48,7 +48,7 @@ class AppService:
       db.session.close()
 
   @classmethod
-  def remove_app(cls, app: str, user: str) -> [bool, str]:
+  def remove_app(cls, user: str, app: str) -> [bool, str]:
     try:
       app = Application.query.filter_by(user_uuid=user, name=app).first()
       if app is None:
