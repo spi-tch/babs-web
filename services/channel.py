@@ -99,6 +99,7 @@ class ChannelService:
         type_name="slot",
         intent_name="",
         action_name="user",
+        timestamp=datetime.now().timestamp(),
         data={
           "type_name": "slot",
           "timestamp": datetime.now().timestamp(),
