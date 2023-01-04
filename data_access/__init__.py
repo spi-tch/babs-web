@@ -8,6 +8,7 @@ from .creds import *
 from .channels import *
 from .developer import *
 from .apps import *
+from .event import *
 
 T = TypeVar('T')
 

@@ -1,9 +1,10 @@
 import logging
+from datetime import datetime
 
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
-from data_access import VerificationRequest, Channel
+from data_access import VerificationRequest, Channel, Event
 from util.app import db, generate_code
 
 logger = logging.getLogger()
@@ -93,6 +94,19 @@ class ChannelService:
       channel = Channel.query.filter_by(sender_id=sender_id, user_uuid=user_id).first()
       if channel is None:
         return False, 'No channel found.'
+      event = Event(
+        sender_id=sender_id,
+        type_name="slot",
+        intent_name="",
+        action_name="user",
+        data={
+          "type_name": "slot",
+          "timestamp": datetime.now().timestamp(),
+          "metadata": {},
+          "name": "user",
+          "value": None}
+      )
+      db.session.add(event)
       db.session.delete(channel)
       db.session.commit()
       return True, 'Channel removed.'
