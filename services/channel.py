@@ -103,7 +103,7 @@ class ChannelService:
         data={
           "type_name": "slot",
           "timestamp": datetime.now().timestamp(),
-          "metadata": {},
+          "metadata": {"model_id": "62f9ef659b674af0bb705753919ed390"},
           "name": "user",
           "value": None}
       )
