@@ -8,7 +8,7 @@ from flask import Blueprint, request
 import services
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
-CLIENT_SECRETS_FILE = "../client_secret.json"
+CLIENT_SECRETS_FILE = "client_secret.json"
 auth = Blueprint("auth", __name__)
 
 logger = logging.getLogger(__name__)
