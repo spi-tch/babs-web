@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 auth_service = services.AuthService()
 
 
-@auth.route(f"/auth", methods=["POST"])
+@auth.route(f"/{VERSION}/auth", methods=["POST"])
 def authorize():
   data = request.json
   flask.session["user"] = request.environ["user"].uuid
