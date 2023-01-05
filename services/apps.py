@@ -1,10 +1,9 @@
 import logging
 
-from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
 from data_access import Application
-from util.app import db, generate_code
+from util.app import db
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,11 @@ class AppService:
 
   @classmethod
   def remove_app(cls, user: str, app: str) -> [bool, str]:
+    from .auth import AuthService
     try:
+      revoked, message = AuthService().revoke_creds(user)
+      if not revoked:
+        return False, message
       app = Application.query.filter_by(user_uuid=user, name=app).first()
       if app is None:
         return False, 'No application found.'

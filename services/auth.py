@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+import requests
 from sqlalchemy import update
 
 from data_access import GoogleCreds
@@ -82,3 +83,26 @@ class AuthService:
       return False, "Unable to update user creds"
     finally:
       db.session.close()
+
+  @classmethod
+  def revoke_creds(cls, user_id):
+    # Call Google API to revoke the token
+    # Delete the creds from the database
+    creds = cls.get_google_creds(user_id)
+    response = requests.post('https://oauth2.googleapis.com/revoke', params={'token': creds.token},
+                             headers={'content-type': 'application/x-www-form-urlencoded'})
+    if response.status_code != 200:
+      return False, "Unable to revoke credentials"
+    try:
+      creds = GoogleCreds.query.filter_by(user=user_id).first()
+      if creds is None:
+        return False, "No credentials found."
+      db.session.delete(creds)
+      db.session.commit()
+    except Exception as e:
+      logger.error(e)
+      db.session.rollback()
+      return False, "Unable to delete application."
+    finally:
+      db.session.close()
+

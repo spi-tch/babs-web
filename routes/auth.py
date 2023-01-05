@@ -18,7 +18,7 @@ auth_service = services.AuthService()
 @auth.route(f"/auth", methods=["POST"])
 def authorize():
   data = request.json
-  flask.session["user"] = request.environ["user"]["uuid"]
+  flask.session["user"] = request.environ["user"].uuid
   flask.session["scopes"] = data["scopes"]
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE, scopes=data["scopes"])

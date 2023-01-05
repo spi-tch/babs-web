@@ -1,8 +1,6 @@
 import logging
 import os
 
-import flask
-import google_auth_oauthlib.flow
 from flask import Blueprint, request, jsonify
 
 import services
@@ -67,6 +65,7 @@ def get_apps():
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.status_code = 500
     return response
+
 
 @apps.route(f'/{VERSION}/application', methods=['DELETE'])
 def delete_app():
