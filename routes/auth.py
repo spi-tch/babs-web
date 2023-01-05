@@ -28,7 +28,7 @@ def authorize():
   flask.session["scopes"] = data["scopes"]
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE, scopes=data["scopes"])
-  flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True)
+  flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
   authorization_url, state = flow.authorization_url(
     access_type="offline",
     include_granted_scopes="true"
