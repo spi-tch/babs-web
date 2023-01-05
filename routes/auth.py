@@ -36,7 +36,7 @@ def authorize():
 
   flask.session["state"] = state
 
-  return flask.redirect(authorization_url)
+  return flask.redirect(authorization_url, code=303)
 
 
 @auth.route(f"/auth_callback")
