@@ -1,5 +1,4 @@
 import logging
-import uuid
 
 import requests
 from sqlalchemy import update
@@ -21,7 +20,7 @@ def credentials_to_dict(credentials):
 
 class AuthService:
   @classmethod
-  def store_google_creds(cls, user_id: uuid.UUID, credentials) -> [bool, str]:
+  def store_google_creds(cls, user_id: str, credentials) -> [bool, str]:
     """
     This function will update the credentials of a Google user. This also includes
     revocation and partial authorization
@@ -29,7 +28,7 @@ class AuthService:
     :param credentials: Google Credentials
     :return: tuple (bool, str)
     """
-    if cls.get_google_creds(str(user_id)):
+    if cls.get_google_creds(user_id):
       return cls.update_creds(credentials_to_dict(credentials), user_id)
 
     new_creds = GoogleCreds(

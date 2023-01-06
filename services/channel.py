@@ -43,7 +43,8 @@ class ChannelService:
       db.session.add(verification_request)
       db.session.commit()
       return True, 'Verification request created.', {
-        'verification_code': verification_code
+        'verification_code': verification_code,
+        'verification_link': f"{chat_links[channel]}{verification_code}"
       }
 
     except OperationalError as e:
@@ -94,20 +95,21 @@ class ChannelService:
       channel = Channel.query.filter_by(sender_id=sender_id, user_uuid=user_id).first()
       if channel is None:
         return False, 'No channel found.'
-      event = Event(
-        sender_id=sender_id,
-        type_name="slot",
-        intent_name="",
-        action_name="user",
-        timestamp=datetime.now().timestamp(),
-        data={
-          "type_name": "slot",
-          "timestamp": datetime.now().timestamp(),
-          "metadata": {"model_id": "62f9ef659b674af0bb705753919ed390"},
-          "name": "user",
-          "value": None}
-      )
-      db.session.add(event)
+      delete_events_fn = Event.__table__.delete().where(Event.sender_id.__eq__(sender_id))
+      # event = Event(
+      #   sender_id=sender_id,
+      #   type_name="slot",
+      #   intent_name="",
+      #   action_name="user",
+      #   timestamp=datetime.now().timestamp(),
+      #   data={
+      #     "type_name": "slot",
+      #     "timestamp": datetime.now().timestamp(),
+      #     "metadata": {"model_id": "62f9ef659b674af0bb705753919ed390"},
+      #     "name": "user",
+      #     "value": None}
+      # )
+      db.session.execute(delete_events_fn)
       db.session.delete(channel)
       db.session.commit()
       return True, 'Channel removed.'
