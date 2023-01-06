@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 import services
 
@@ -18,29 +18,18 @@ def add_app(application):
   app_name = request.view_args["application"]
 
   if not app_name:
-    return jsonify({'message': 'App name is required', 'success': False}), 400
+    return {'message': 'App name is required', 'success': False}, 400
 
   try:
     status, message, data = app_service.add_app(app_name, request.environ['user'].uuid)
     if not status:
-      response = jsonify({'message': message, 'success': False})
-      response.headers.add('Access-Control-Allow-Origin', '*')
-      response.headers.add('Access-Control-Allow-Credentials', 'true')
-      response.status_code = 400
-      return response
-    response = jsonify({'message': message, 'success': True, 'data': data})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.status_code = 200
+      response = {'message': message, 'success': False}
+      return response, 400
     return {'message': message, 'success': True, 'data': data}, 200
   except Exception as e:
     logger.error(e)
-
-    response = jsonify({'message': 'Unable to add app', 'success': False})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.status_code = 500
-    return response
+    response = {'message': 'Unable to add app', 'success': False}
+    return response, 500
 
 
 # Get all apps for user
@@ -49,22 +38,14 @@ def get_apps():
   try:
     status, message, data = app_service.get_apps(request.environ['user'].uuid)
     if not status:
-      response = jsonify({'message': message, 'success': False})
-      response.headers.add('Access-Control-Allow-Origin', '*')
-      response.headers.add('Access-Control-Allow-Credentials', 'true')
+      response = {'message': message, 'success': False}
       return response, 400
-    response = jsonify({'message': message, 'success': True, 'data': data})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.status_code = 200
-    return response
+    response = {'message': message, 'success': True, 'data': data}
+    return response, 200
   except Exception as e:
     logger.error(e)
-    response = jsonify({'message': 'Unable to get applications', 'success': False})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.status_code = 500
-    return response
+    response = {'message': 'Unable to get applications', 'success': False}
+    return response, 500
 
 
 @apps.route(f'/{VERSION}/application', methods=['DELETE'])

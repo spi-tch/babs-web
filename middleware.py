@@ -27,7 +27,7 @@ class Middleware:
 
   def __call__(self, environ, start_response):
     request = Request(environ)
-    if request.path in SECURITY_EXCLUSIONS:
+    if request.path in SECURITY_EXCLUSIONS or request.method == "OPTIONS":
       return self.app(environ, start_response)
 
     auth = request.headers.get("Authorization")
