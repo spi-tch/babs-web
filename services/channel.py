@@ -1,4 +1,5 @@
 import logging
+import os
 from threading import Thread
 
 from sqlalchemy import update
@@ -9,8 +10,8 @@ from util.app import db, generate_code
 
 logger = logging.getLogger()
 chat_links = {
-  "whatsapp": "https://wa.me/14155238886?text=",
-  "telegram": "tg://msg?to=BabsAIBot&text=",
+  "whatsapp": f"https://wa.me/{os.getenv('WA_NUM')}?text=",
+  "telegram": f"tg://msg?to={os.getenv('TG_NAME')}&text=",
 }
 
 
