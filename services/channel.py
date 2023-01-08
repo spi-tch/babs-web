@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from threading import Thread
 
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
@@ -95,21 +95,8 @@ class ChannelService:
       channel = Channel.query.filter_by(sender_id=sender_id, user_uuid=user_id).first()
       if channel is None:
         return False, 'No channel found.'
-      delete_events_fn = Event.__table__.delete().where(Event.sender_id.__eq__(sender_id))
-      # event = Event(
-      #   sender_id=sender_id,
-      #   type_name="slot",
-      #   intent_name="",
-      #   action_name="user",
-      #   timestamp=datetime.now().timestamp(),
-      #   data={
-      #     "type_name": "slot",
-      #     "timestamp": datetime.now().timestamp(),
-      #     "metadata": {"model_id": "62f9ef659b674af0bb705753919ed390"},
-      #     "name": "user",
-      #     "value": None}
-      # )
-      db.session.execute(delete_events_fn)
+
+      Thread(target=cls.delete_events, args=[sender_id]).run()
       db.session.delete(channel)
       db.session.commit()
       return True, 'Channel removed.'
@@ -117,5 +104,18 @@ class ChannelService:
       db.session.rollback()
       logger.error('Could not remove channel.', e)
       return False, 'Could not remove channel.'
+    finally:
+      db.session.close()
+
+  @classmethod
+  def delete_events(cls, sender_id: str):
+    try:
+      delete_events_fn = Event.__table__.delete().where(Event.sender_id.__eq__(sender_id))
+    # todo: Do not delete events, just edit sender_id to None
+      db.session.execute(delete_events_fn)
+      db.session.commit()
+    except OperationalError as e:
+      db.session.rollback()
+      logger.error('Could not delete events.', e)
     finally:
       db.session.close()

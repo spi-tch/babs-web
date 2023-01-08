@@ -34,7 +34,7 @@ def create_app():
   db.create_all()
   migrate = Migrate(app, db)
 # Enable CORS for all routes
-  CORS(app)
+  CORS(app, send_wildcard=True, max_age=86400)
 
   return app
 

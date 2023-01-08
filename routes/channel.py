@@ -76,7 +76,8 @@ def get_channel_by_id(channel_id):
 @channel.route(f'/{VERSION}/channel', methods=['DELETE'])
 def delete_channel():
   try:
-    status, message = channel_service.remove_channel(request.environ['user'].uuid, request.json['sender_id'])
+    sender_id = request.args.get('sender_id')
+    status, message = channel_service.remove_channel(request.environ['user'].uuid, sender_id)
     if not status:
       return {'message': message, 'success': False}, 400
     return {'message': message, 'success': True}, 200
