@@ -11,7 +11,7 @@ from util.app import db, generate_code
 logger = logging.getLogger()
 chat_links = {
   "whatsapp": f"https://wa.me/{os.getenv('WA_NUM')}?text=",
-  "telegram": f"tg://msg?to={os.getenv('TG_NAME')}&text=",
+  "telegram": f"tg://msg?to=@{os.getenv('TG_NAME')}&text=",
 }
 
 
