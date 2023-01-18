@@ -38,7 +38,7 @@ def authorize():
     login_hint=request.environ["user"].email,
     prompt="consent")
 
-  return redirect(authorization_url)
+  return {"redirect_url": authorization_url}, 200
 
 
 @auth.route(f"/auth_callback")
