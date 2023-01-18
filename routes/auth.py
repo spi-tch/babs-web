@@ -1,10 +1,9 @@
-import ast
 import logging
 import os
 
 import flask
 import google_auth_oauthlib.flow
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request
 
 import services
 
@@ -42,7 +41,7 @@ def authorize():
   return {"redirect_url": authorization_url}, 200
 
 
-@auth.route(f"/auth_callback")
+@auth.route("/auth_callback")
 def auth_callback():
   try:
     args = request.args
