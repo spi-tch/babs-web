@@ -50,7 +50,8 @@ def auth_callback():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=SCOPES, state=user)
     flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
-    authorization_response = "https://staging-api.babs.ai/auth_callback"
+    authorization_response = flask.request.url
+    authorization_response.replace("http://", "https://")
 
     flow.fetch_token(authorization_response=authorization_response)
 
