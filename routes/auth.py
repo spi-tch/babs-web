@@ -51,7 +51,7 @@ def auth_callback():
       CLIENT_SECRETS_FILE, scopes=SCOPES, state=user)
     flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
     # todo: fix this url
-    authorization_response = flask.url_for("auth.auth", _external=True, _scheme="https")
+    authorization_response = flask.url_for("auth.authorize", _external=True, _scheme="https")
     authorization_response += f"?state={user}"
 
     flow.fetch_token(authorization_response=authorization_response)
