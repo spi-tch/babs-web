@@ -31,7 +31,7 @@ def authorize():
   state = f"{request.environ['user'].uuid} {data['scopes']}"
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE, scopes=data["scopes"], state=state)
-  flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="http")
+  flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
   authorization_url, state = flow.authorization_url(
     access_type="offline",
     include_granted_scopes="true",
@@ -51,7 +51,7 @@ def auth_callback():
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=scopes, state=args["state"])
-    flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="http")
+    flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
     authorization_response = flask.request.url
 
     flow.fetch_token(authorization_response=authorization_response)
