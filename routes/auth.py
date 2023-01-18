@@ -16,27 +16,28 @@ logger = logging.getLogger(__name__)
 auth_service = services.AuthService()
 user_service = services.UserService()
 
+SCOPES = ["https://www.googleapis.com/auth/calendar",
+          "https://www.googleapis.com/auth/gmail.modify",
+          "https://www.googleapis.com/auth/contacts",
+          "openid", "https://www.googleapis.com/auth/userinfo.email",
+          "https://www.googleapis.com/auth/userinfo.profile"]
+
 
 @auth.route(f"/{VERSION}/auth", methods=["GET"])
 def authorize():
   try:
     data = request.json
   except Exception as e:
-    logger.error(e)
-    data = {"scopes": ["https://www.googleapis.com/auth/calendar",
-                       "https://www.googleapis.com/auth/gmail.modify",
-                       "https://www.googleapis.com/auth/contacts",
-                       "openid", "https://www.googleapis.com/auth/userinfo.email",
-                       "https://www.googleapis.com/auth/userinfo.profile"]}
-  state = f"{request.environ['user'].uuid} {data['scopes']}"
+    data = {"scopes": SCOPES}
+  state = f"{request.environ['user'].uuid}"
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-    CLIENT_SECRETS_FILE, scopes=data["scopes"], state=state)
+    CLIENT_SECRETS_FILE, scopes=data["scopes"])
   flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
   authorization_url, state = flow.authorization_url(
     access_type="offline",
     include_granted_scopes="true",
     login_hint=request.environ["user"].email,
-    prompt="consent")
+    prompt="consent", state=state)
 
   return {"redirect_url": authorization_url}, 200
 
@@ -45,12 +46,10 @@ def authorize():
 def auth_callback():
   try:
     args = request.args
-    state = args["state"].split(" ", maxsplit=1)
-    user = state[0]
-    scopes = ast.literal_eval(state[1])
+    user = args["state"]
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-      CLIENT_SECRETS_FILE, scopes=scopes, state=args["state"])
+      CLIENT_SECRETS_FILE, scopes=SCOPES, state=user)
     flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
     authorization_response = flask.request.url
 
