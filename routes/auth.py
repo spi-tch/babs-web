@@ -3,7 +3,7 @@ import os
 
 import flask
 import google_auth_oauthlib.flow
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 
 import services
 
@@ -58,7 +58,7 @@ def auth_callback():
 
     credentials = flow.credentials
     auth_service.store_google_creds(user, credentials)
-    return {"message": "User successfully authorized", "success": " True"}, 200
+    return redirect(f"{request.environ['HTTP_ORIGIN']}/app/integrations", 302)
   except Exception as e:
     logger.error(e)
     return {"error": "Something Happened", "success": False}, 500

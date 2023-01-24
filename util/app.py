@@ -32,9 +32,9 @@ def create_app():
   app.wsgi_app = Middleware(app.wsgi_app)
 
   db.create_all()
-  migrate = Migrate(app, db)
+# migrate = Migrate(app, db)
 # Enable CORS for all routes
-  CORS(app, send_wildcard=True, max_age=86400)
+  CORS(app, origins="*", send_wildcard=True, max_age=86400)
 
   return app
 
