@@ -20,6 +20,7 @@ SCOPES = ["https://www.googleapis.com/auth/calendar",
           "https://www.googleapis.com/auth/contacts",
           "openid", "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile"]
+APP_REDIRECT = ""
 
 
 @auth.route(f"/{VERSION}/auth", methods=["GET"])
@@ -29,6 +30,8 @@ def authorize():
   except Exception as e:
     data = {"scopes": SCOPES}
   state = f"{request.environ['user'].uuid}"
+  global APP_REDIRECT
+  APP_REDIRECT = f"{request.origin}/app/integrations"
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE, scopes=data["scopes"])
   flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
@@ -58,7 +61,7 @@ def auth_callback():
 
     credentials = flow.credentials
     auth_service.store_google_creds(user, credentials)
-    return redirect(f"{request.environ['HTTP_ORIGIN']}/app/integrations", 302)
+    return redirect(APP_REDIRECT, 302)
   except Exception as e:
     logger.error(e)
     return {"error": "Something Happened", "success": False}, 500
