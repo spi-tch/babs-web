@@ -51,7 +51,7 @@ def delete_gmail_watch(user_id: str) -> None:
   creds = credentials_to_dict(AuthService.get_google_creds(user_id))
   service = get_gmail_service(creds)
   service.users().stop(userId=user["email"]).execute()
-  print(f"Deleted gmail watch for {user['email']}")
+  logger.info(f"Deleted gmail watch for {user['email']}")
 
 
 def delete_calendar_watch(user_id: str) -> None:
@@ -62,4 +62,4 @@ def delete_calendar_watch(user_id: str) -> None:
   service = get_calendar_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
   service.users().stop(userId=user["email"], id=watch["id"]).execute()
-  print(f"Deleted calendar watch for {user['email']}")
+  logger.info(f"Deleted calendar watch for {user['email']}")
