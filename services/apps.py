@@ -71,7 +71,9 @@ class AppService:
       if app == "Google Mail":
         delete_gmail_watch(user)
       elif app == "Google Calendar":
-        delete_calendar_watch(user)
+        # todo: delete calendar watch
+        # delete_calendar_watch(user)
+        pass
       return True, 'Application successfully removed.'
     except OperationalError as e:
       db.session.rollback()
