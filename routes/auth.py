@@ -44,24 +44,24 @@ def authorize():
   return {"redirect_url": authorization_url}, 200
 
 
-@auth.route("/auth_callback")
-def auth_callback():
-  try:
-    args = request.args
-    user = args["state"]
-
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-      CLIENT_SECRETS_FILE, scopes=SCOPES, state=user)
-    flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
-    # todo: fix this url
-    authorization_response = request.url
-    authorization_response = authorization_response.replace("http://", "https://")
-
-    flow.fetch_token(authorization_response=authorization_response)
-
-    credentials = flow.credentials
-    auth_service.store_google_creds(user, credentials)
-    return redirect(APP_REDIRECT, 302)
-  except Exception as e:
-    logger.error(e)
-    return {"error": "Something Happened", "success": False}, 500
+# @auth.route("/auth_callback")
+# def auth_callback():
+#   try:
+#     args = request.args
+#     user = args["state"]
+#
+#     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+#       CLIENT_SECRETS_FILE, scopes=SCOPES, state=user)
+#     flow.redirect_uri = flask.url_for('auth.auth_callback', _external=True, _scheme="https")
+#     # todo: fix this url
+#     authorization_response = request.url
+#     authorization_response = authorization_response.replace("http://", "https://")
+#
+#     flow.fetch_token(authorization_response=authorization_response)
+#
+#     credentials = flow.credentials
+#     auth_service.store_google_creds(user, credentials)
+#     return redirect(APP_REDIRECT, 302)
+#   except Exception as e:
+#     logger.error(e)
+#     return {"error": "Something Happened", "success": False}, 500
