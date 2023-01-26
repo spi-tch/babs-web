@@ -1,11 +1,10 @@
 import logging
-from threading import Thread
 
 from sqlalchemy.exc import OperationalError
 
 from data_access import Application
 from util.app import db
-from util.watch import watch_calendar, watch_gmail
+from util.watch import watch_calendar, watch_gmail, delete_gmail_watch, delete_calendar_watch
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +14,9 @@ class AppService:
   def add_app(cls, app_name: str, user: dict, creds: dict) -> [bool, str, dict]:
     try:
       app = Application.query.filter_by(user_uuid=user["uuid"], name=app_name).first()
-      # if app:
-      #   return False, 'User already has this application.', None
-        
+      if app:
+        return False, 'User already has this application.', None
+
       app = Application(
         user_uuid=user["uuid"],
         name=app_name
@@ -58,14 +57,19 @@ class AppService:
   def remove_app(cls, user: str, app: str) -> [bool, str]:
     from .auth import AuthService
     try:
-      revoked, message = AuthService().revoke_creds(user)
-      if not revoked:
-        return False, message
+      # todo: revoke credentials
+      # revoked, message = AuthService().revoke_creds(user)
+      # if not revoked:
+      #   return False, message
       app = Application.query.filter_by(user_uuid=user, name=app).first()
       if app is None:
         return False, 'No application found.'
       db.session.delete(app)
       db.session.commit()
+      if app == "Google Mail":
+        delete_gmail_watch(user)
+      elif app == "Google Calendar":
+        delete_calendar_watch(user)
       return True, 'Application successfully removed.'
     except OperationalError as e:
       db.session.rollback()

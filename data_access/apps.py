@@ -10,4 +10,3 @@ class Application(db.Model):
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
   user_uuid = db.Column(db.String, nullable=False)
-	

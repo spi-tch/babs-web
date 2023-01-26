@@ -1,5 +1,12 @@
+import logging
+import uuid
+
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+
+from services import AuthService, UserService
+
+logger = logging.getLogger(__name__)
 
 
 def get_credentials(creds: dict):
@@ -19,7 +26,7 @@ def watch_gmail(user: dict, creds: dict) -> None:
   service = get_gmail_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": f"projects/babs-ai-test/topics/gmail"}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
-  print(f"Watching gmail for {user['email']}")
+  logger.info(f"Watching gmail for {user['email']}")
 
 
 def get_calendar_service(creds: dict):
@@ -33,20 +40,24 @@ def watch_calendar(user: dict, creds: dict) -> None:
   service = get_calendar_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": f"projects/babs-ai-test/topics/calendar"}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
-  print(f"Watching calendar for {user['email']}")
+  logger.info(f"Watching calendar for {user['email']}")
 
 
-def delete_gmail_watch(user: dict) -> None:
+def delete_gmail_watch(user_id: str) -> None:
   """Deletes the gmail watch for the given user."""
-  service = get_gmail_service(user["uuid"])
+  user = dict(UserService.find_user(uuid.UUID(user_id)))
+  creds = dict(AuthService.get_google_creds(user_id))
+  service = get_gmail_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
-  service.users().stop(userId="me", id=watch["id"]).execute()
+  service.users().stop(userId=user["email"], id=watch["id"]).execute()
   print(f"Deleted gmail watch for {user['email']}")
 
 
-def delete_calendar_watch(user: dict) -> None:
+def delete_calendar_watch(user_id: str) -> None:
   """Deletes the calendar watch for the given user."""
-  service = get_calendar_service(user["uuid"])
+  user = dict(UserService.find_user(uuid.UUID(user_id)))
+  creds = dict(AuthService.get_google_creds(user_id))
+  service = get_calendar_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
   service.users().stop(userId=user["email"], id=watch["id"]).execute()
   print(f"Deleted calendar watch for {user['email']}")

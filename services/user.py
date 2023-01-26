@@ -7,7 +7,7 @@ from google.oauth2.id_token import verify_oauth2_token
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
-from data_access import User, VerificationRequest, DBQuery, WaitList
+from data_access import User, DBQuery, WaitList
 from exceptns import UserNotFoundException
 from util.app import db
 
