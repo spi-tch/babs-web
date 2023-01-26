@@ -27,7 +27,9 @@ class AppService:
         watch_gmail(user, creds=creds)
         # Thread(target=watch_gmail, args=(user, creds)).start()
       elif app_name == "Google Calendar":
-        watch_calendar(user, creds=creds)
+        # todo: add calendar watch
+        # watch_calendar(user, creds=creds)
+        pass
         # Thread(target=watch_calendar, args=(user, creds)).start()
       return True, 'Application created.', {
         'app': app_name

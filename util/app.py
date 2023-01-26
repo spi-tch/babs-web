@@ -45,7 +45,7 @@ def register_blueprint(app):
   # Users
   app.register_blueprint(routes.user.user)
   app.register_blueprint(routes.admin.find)
-  app.register_blueprint(routes.auth.auth)
+  # app.register_blueprint(routes.auth.auth)
   app.register_blueprint(routes.channel.channel)
   app.register_blueprint(routes.apps.apps)
 
