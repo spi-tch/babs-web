@@ -56,24 +56,25 @@ class AppService:
       db.session.close()
 
   @classmethod
-  def remove_app(cls, user: str, app: str) -> [bool, str]:
-    from .auth import AuthService
+  def remove_app(cls, user: str, app_name: str) -> [bool, str]:
+    # from .auth import AuthService
     try:
       # todo: revoke credentials
       # revoked, message = AuthService().revoke_creds(user)
       # if not revoked:
       #   return False, message
-      app = Application.query.filter_by(user_uuid=user, name=app).first()
+      app = Application.query.filter_by(user_uuid=user, name=app_name).first()
       if app is None:
         return False, 'No application found.'
-      db.session.delete(app)
-      db.session.commit()
-      if app == "Google Mail":
+
+      if app_name == "Google Mail":
         delete_gmail_watch(user)
-      elif app == "Google Calendar":
+      elif app_name == "Google Calendar":
         # todo: delete calendar watch
         # delete_calendar_watch(user)
         pass
+      db.session.delete(app)
+      db.session.commit()
       return True, 'Application successfully removed.'
     except OperationalError as e:
       db.session.rollback()
