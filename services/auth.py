@@ -37,7 +37,7 @@ class AuthService:
       refresh_token=credentials.refresh_token,
       token_uri=credentials.token_uri,
       client_id=credentials.client_id,
-      client_secret=credentials.client_secret,
+      client_secret="credentials.client_secret",  # todo: fix this
       scopes=credentials.scopes
     )
 
