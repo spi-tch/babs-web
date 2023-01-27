@@ -108,6 +108,7 @@ def auth_callback():
 
 def store_apps(app_name, user: dict, creds: dict):
   try:
+    creds.pop("expiry", None)
     _, message, data = app_service.add_app(app_name, user, creds)
   except Exception as e:
     logger.error(e)
