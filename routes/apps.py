@@ -24,7 +24,12 @@ SCOPES = ["https://www.googleapis.com/auth/calendar",
           "https://www.googleapis.com/auth/contacts",
           "openid", "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile"]
-APP_REDIRECT = ""
+APP_REDIRECT = {
+  "production": "https://babs.ai",
+  "test": "https://deploy-preview-13--babstech.netlify.app",
+  "dev": "http://localhost:3000",
+  "default": "http://localhost:3000"
+}
 
 
 @apps.route(f'/{VERSION}/application', methods=['POST'])
@@ -34,8 +39,6 @@ def add_app():
     return {'message': 'App name is required', 'success': False}, 400
 
   state = f"{request.environ['user'].uuid}/{app_name}"
-  global APP_REDIRECT
-  APP_REDIRECT = f"{request.origin}/app/integrations"
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
     CLIENT_SECRETS_FILE, scopes=SCOPES)
   flow.redirect_uri = flask.url_for("apps.auth_callback", _external=True, _scheme="https")
@@ -100,7 +103,7 @@ def auth_callback():
       "uuid": user,
       "email": email
     }, creds=json.loads(credentials.to_json()))
-    return redirect(APP_REDIRECT, 302)
+    return redirect(f"{APP_REDIRECT[os.getenv('FLASK_CONFIG')]}/app/integrations", 302)
   except Exception as e:
     logger.error(e)
     return {"error": "Something Happened", "success": False}, 500
