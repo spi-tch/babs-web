@@ -4,6 +4,7 @@ import uuid
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
+from data_access import Watch
 from services import AuthService, UserService, build_user_object, credentials_to_dict
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ def delete_gmail_watch(user_id: str) -> None:
   creds = credentials_to_dict(AuthService.get_google_creds(user_id))
   service = get_gmail_service(creds)
   service.users().stop(userId=user["email"]).execute()
+  Watch.query.filter_by(user_uuid=user_id, app_name="Google Mail").delete()
   logger.info(f"Deleted gmail watch for {user['email']}")
 
 
@@ -62,4 +64,5 @@ def delete_calendar_watch(user_id: str) -> None:
   service = get_calendar_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
   service.users().stop(userId=user["email"], id=watch["id"]).execute()
+  Watch.query.filter_by(user_uuid=user_id, app_name="Google Calendar").delete()
   logger.info(f"Deleted calendar watch for {user['email']}")
