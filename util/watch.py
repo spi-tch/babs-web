@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 
 from google.oauth2.credentials import Credentials
@@ -8,8 +9,6 @@ from data_access import Watch
 from services import AuthService, UserService, build_user_object, credentials_to_dict
 
 logger = logging.getLogger(__name__)
-mail_topic = "projects/babs-ai-test/topics/gmail"
-calendar_topic = "projects/babs-ai-test/topics/calendar"
 
 
 def get_credentials(creds: dict):
@@ -26,7 +25,7 @@ def get_gmail_service(creds: dict):
 def watch_gmail(user: dict, creds: dict) -> None:
   """Watches the user's gmail inbox for new messages."""
   service = get_gmail_service(creds)
-  watch_request_body = {"labelIds": ["INBOX"], "topicName": mail_topic}
+  watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
   logger.info(f"Watching gmail for {user['email']}")
 
@@ -40,7 +39,7 @@ def get_calendar_service(creds: dict):
 def watch_calendar(user: dict, creds: dict) -> None:
   """Watches the user's calendar for new events."""
   service = get_calendar_service(creds)
-  watch_request_body = {"labelIds": ["INBOX"], "topicName": calendar_topic}
+  watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
   logger.info(f"Watching calendar for {user['email']}")
 
@@ -64,5 +63,5 @@ def delete_calendar_watch(user_id: str) -> None:
   service = get_calendar_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
   service.users().stop(userId=user["email"], id=watch["id"]).execute()
-  Watch.query.filter_by(user_uuid=user_id, app_name="Google Calendar").delete()
+  Watch.query.filter_by(user_id=user_id, app_name="Google Calendar").delete()
   logger.info(f"Deleted calendar watch for {user['email']}")
