@@ -21,7 +21,7 @@ user_service = services.UserService()
 
 SCOPES = ["https://www.googleapis.com/auth/calendar",
           "https://www.googleapis.com/auth/gmail.send",
-          "https://www.googleapis.com/auth/gmail.readonly"
+          "https://www.googleapis.com/auth/gmail.readonly",
           "https://www.googleapis.com/auth/contacts",
           "openid", "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile"]
