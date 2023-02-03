@@ -50,7 +50,10 @@ def delete_gmail_watch(user_id: str) -> None:
   user = build_user_object(user)
   creds = credentials_to_dict(AuthService.get_google_creds(user_id))
   service = get_gmail_service(creds)
-  service.users().stop(userId=user["email"]).execute()
+  try:
+    service.users().stop(userId=user["email"]).execute()
+  except Exception as e:
+    logger.error(f"Unable to delete gmail watch for {user['email']}", e)
   Watch.query.filter_by(user_id=user_id, app_name="Google Mail").delete()
   logger.info(f"Deleted gmail watch for {user['email']}")
 
