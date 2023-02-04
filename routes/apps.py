@@ -19,10 +19,8 @@ app_service = services.AppService()
 auth_service = services.AuthService()
 user_service = services.UserService()
 
-SCOPES = ["https://www.googleapis.com/auth/calendar",
-          "https://www.googleapis.com/auth/gmail.send",
+SCOPES = ["https://www.googleapis.com/auth/calendar.events",
           "https://www.googleapis.com/auth/gmail.readonly",
-          "https://www.googleapis.com/auth/contacts",
           "openid", "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile"]
 APP_REDIRECT = {
