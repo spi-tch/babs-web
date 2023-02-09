@@ -10,7 +10,7 @@ from flask import Blueprint, request, redirect
 import services
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
-CLIENT_SECRETS_FILE = "client_config.json"
+CLIENT_SECRETS_FILE = "client_config.json" if os.getenv("FLASK_CONFIG") == "production" else "client_secret.json"
 apps = Blueprint("apps", __name__)
 
 logger = logging.getLogger(__name__)
