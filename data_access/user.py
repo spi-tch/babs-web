@@ -14,6 +14,7 @@ class User(db.Model):
   dob = db.Column(db.DATE, nullable=True)
   country = db.Column(db.String(2), nullable=True)
   is_admin = db.Column(db.Boolean, nullable=False, default=False)
+  timezone = db.Column(db.String(30), nullable=True)
 
   def __repr__(self):
     return f'User: {self.first_name} {self.last_name}; Country: {self.country}'

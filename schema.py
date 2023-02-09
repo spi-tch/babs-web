@@ -25,9 +25,12 @@ class UserUpdateSchema(BaseSchema):
                           validate=validate.Length(min=2, max=2,
                                                    error='use the Alpha-2 country code, e.g. NG'),
                           error_messages={
-                            'required': 'this field is mandatory',
                             'invalid': 'use the Alpha-2 country code, e.g. NG'
                           })
+  timezone = fields.String(required=False,
+                           error_messages={
+                             'invalid': 'invalid timezone'
+                           })
 
 
 class UserRegistrationSchema(BaseSchema):

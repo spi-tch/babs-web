@@ -5,7 +5,7 @@ from threading import Thread
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
-from data_access import VerificationRequest, Channel, Event
+from data_access import VerificationRequest, Channel, BabsEvent
 from util.app import db, generate_code
 
 logger = logging.getLogger()
@@ -97,7 +97,7 @@ class ChannelService:
       if channel is None:
         return False, 'No channel found.'
 
-      Thread(target=cls.delete_events, args=[sender_id]).run()
+      Thread(target=cls.delete_events, args=[user_id]).run()
       db.session.delete(channel)
       db.session.commit()
       return True, 'Channel removed.'
@@ -109,9 +109,9 @@ class ChannelService:
       db.session.close()
 
   @classmethod
-  def delete_events(cls, sender_id: str):
+  def delete_events(cls, user_id: str):
     try:
-      delete_events_fn = Event.__table__.delete().where(Event.sender_id.__eq__(sender_id))
+      delete_events_fn = BabsEvent.__table__.delete().where(BabsEvent.user_id.__eq__(user_id))
     # todo: Do not delete events, just edit sender_id to None
       db.session.execute(delete_events_fn)
       db.session.commit()
