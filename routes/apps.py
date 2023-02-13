@@ -25,7 +25,7 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.events",
           "https://www.googleapis.com/auth/userinfo.profile"]
 APP_REDIRECT = {
   "production": "https://babs.ai",
-  "test": "https://deploy-preview-13--babstech.netlify.app",
+  "test": "https://deploy-preview-14--babstech.netlify.app",
   "dev": "http://localhost:3000",
   "default": "http://localhost:3000"
 }

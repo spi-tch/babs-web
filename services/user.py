@@ -22,7 +22,8 @@ def build_user_object(user: User):
     'country': user.country or None,
     'is_admin': user.is_admin,
     'first_name': user.first_name,
-    'last_name': user.last_name or None
+    'last_name': user.last_name or None,
+    'timezone': user.timezone or None
   }
 
 
