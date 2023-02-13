@@ -56,7 +56,9 @@ class UserService:
     except UserNotFoundException:
       existing_user = None
     if existing_user:
-      return True, 'User already exists', build_user_object(existing_user)
+      user = build_user_object(existing_user)
+      user["new_user"] = False
+      return True, 'User already exists', user
 
     new_user = User(
       first_name=claims['given_name'],
@@ -74,7 +76,9 @@ class UserService:
       db.session.close()
 
     user = self.find_user(__id__)
-    return True, 'User created on DB', build_user_object(user)
+    user = build_user_object(user)
+    user["new_user"] = True
+    return True, 'User created on DB', user
 
   @classmethod
   def delete_verification_code(cls, data: DBQuery):
