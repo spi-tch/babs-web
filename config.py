@@ -13,7 +13,11 @@ class Config:
   SQLALCHEMY_DATABASE_URI = (f"{os.getenv('DB_SCHEME')}://{os.getenv('DB_USER')}:"
                              f"{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:"
                              f"{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
-  SQLALCHEMY_POOL_SIZE = 10
+  SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_recycle": 1000,
+    "pool_size": 10,
+  }
   SQLALCHEMY_TRACK_MODIFICATIONS = False
 
   @staticmethod
