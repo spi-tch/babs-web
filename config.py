@@ -2,8 +2,6 @@
 
 import os
 
-from util.kg import initialize_kg_countries
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 APP_SECRET_KEY = "i23674t8eyisjd843{}P*(&"
 
@@ -22,7 +20,6 @@ class Config:
 
   @staticmethod
   def init_app(app):
-    from babs_kg import config
     # initialize_kg_countries()
     pass
 
