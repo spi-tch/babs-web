@@ -8,4 +8,4 @@ class BabsEvent(db.Model):
     type = db.Column(db.String, nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(), index=True)
     channel = db.Column(db.String, nullable=True)
-    data = db.Column(db.JSON)
+    data = db.Column(db.String)
