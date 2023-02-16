@@ -20,6 +20,7 @@ class ChannelService:
   @classmethod
   def create_channel(cls, channel: str, user: str) -> [bool, str, dict]:
     verification_code = generate_code()
+    verification_link = f"{chat_links[channel]}{verification_code if channel == 'whatsapp' else ''}"
     try:
       request = VerificationRequest.query.filter_by(user_id=user).first()
       if request:
@@ -33,7 +34,7 @@ class ChannelService:
 
         return True, 'Verification request created.', {
           'verification_code': verification_code,
-          'verification_link': f"{chat_links[channel]}{verification_code if channel == 'whatsapp' else ''}"
+          'verification_link': verification_link
         }
 
       verification_request = VerificationRequest(
@@ -45,7 +46,7 @@ class ChannelService:
       db.session.commit()
       return True, 'Verification request created.', {
         'verification_code': verification_code,
-        'verification_link': f"{chat_links[channel]}{verification_code}"
+        'verification_link': verification_link
       }
 
     except OperationalError as e:
