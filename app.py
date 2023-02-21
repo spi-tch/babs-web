@@ -7,9 +7,10 @@ from util.app import create_app
 
 
 sentry_sdk.init(
-  dsn="https://f07103f27c074f2aa59a469446d53bdb@o1379990.ingest.sentry.io/6693095",
+  dsn=os.getenv("SENTRY_DSN"),
   integrations=[FlaskIntegration()],
-  traces_sample_rate=1.0
+  traces_sample_rate=1.0,
+  environment=os.getenv("FLASK_CONFIG"),
 )
 
 app = create_app()
