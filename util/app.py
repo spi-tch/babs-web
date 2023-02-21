@@ -12,7 +12,7 @@ db: SQLAlchemy = None
 
 
 def create_app():
-  conf_name = os.getenv('FLASK_CONFIG', 'test')
+  conf_name = os.getenv('FLASK_CONFIG', 'staging')
   template_dir = os.path.join(os.path.dirname(
     os.path.abspath(
       os.path.dirname(__file__))), 'templates')
