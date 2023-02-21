@@ -23,12 +23,6 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.events",
           "https://www.googleapis.com/auth/gmail.readonly",
           "openid", "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile"]
-APP_REDIRECT = {
-  "production": "https://babs.ai",
-  "test": "https://deploy-preview-14--babstech.netlify.app",
-  "dev": "http://localhost:3000",
-  "default": "http://localhost:3000"
-}
 
 
 @apps.route(f'/{VERSION}/application', methods=['POST'])
@@ -102,7 +96,7 @@ def auth_callback():
       "uuid": user,
       "email": email
     }, creds=json.loads(credentials.to_json()))
-    return redirect(f"{APP_REDIRECT[os.getenv('FLASK_CONFIG')]}/app/integrations", 302)
+    return redirect(f"{os.getenv('FRONTEND_URL')}/app/integrations", 302)
   except Exception as e:
     logger.error(e)
     return {"error": "Something Happened", "success": False}, 500
