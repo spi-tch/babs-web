@@ -51,7 +51,7 @@ class ProductionConfig(Config):
 
 APP_CONFIG = {
   'dev': DevConfig,
-  'test': TestConfig,
+  'staging': TestConfig,
   'production': ProductionConfig,
   'default': DevConfig
 }
