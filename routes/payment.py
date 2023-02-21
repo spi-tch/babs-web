@@ -16,7 +16,7 @@ billing_service = services.BillingService()
 @subscription.route(f'/{VERSION}/subscription', methods=['POST'])
 def create_subscription():
   """Create a new subscription, use Stripe"""
-  request_data = request.args
+  request_data = request.json
   valid, data = validate_request(request_data, CreateSubscriptionSchema())
 
   if not valid:
@@ -24,7 +24,7 @@ def create_subscription():
     return message, 400
 
   try:
-    status, message, session = billing_service.create_checkout_session(data, request.environ["user"]["id"])
+    status, message, session = billing_service.create_checkout_session(data, request.environ["user"].id)
     if status:
       return redirect(session.url, code=303)
     message = {'success': False, 'message': message}
@@ -38,7 +38,7 @@ def create_subscription():
 @subscription.route(f'/{VERSION}/billing_portal', methods=['POST'])
 def create_portal():
   try:
-    status, message, session = billing_service.create_portal_session(request.environ["user"]["id"])
+    status, message, session = billing_service.create_portal_session(request.environ["user"].id)
     if status:
       return redirect(session.url, code=303)
     message = {'success': False, 'message': message}
@@ -52,7 +52,7 @@ def create_portal():
 @subscription.route(f'/{VERSION}/cards', methods=['GET'])
 def get_cards():
   try:
-    status, message, cards = billing_service.get_cards(request.environ["user"]["id"])
+    status, message, cards = billing_service.get_cards(request.environ["user"].id)
     if status:
       return {'success': True, 'cards': cards}
     message = {'success': False, 'message': message}
