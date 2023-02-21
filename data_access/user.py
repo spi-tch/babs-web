@@ -20,6 +20,16 @@ class User(db.Model):
     return f'User: {self.first_name} {self.last_name}; Country: {self.country}'
 
 
+class StripeCustomer(db.Model):
+  __tablename__ = 'stripe_customer'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+  stripe_id = db.Column(db.String, nullable=False, unique=True, index=True)
+  created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+  updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
+                         onupdate=db.func.current_timestamp())
+
+
 class WaitList(db.Model):
   __tablename__ = 'wait_list'
   id = db.Column(db.Integer, primary_key=True)

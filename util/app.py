@@ -42,19 +42,20 @@ def create_app():
 def register_blueprint(app):
   import routes
 
-  # Users
+# Users
   app.register_blueprint(routes.user.user)
   app.register_blueprint(routes.admin.find)
   # app.register_blueprint(routes.auth.auth)
   app.register_blueprint(routes.channel.channel)
   app.register_blueprint(routes.apps.apps)
+  app.register_blueprint(routes.payment.subscription)
 
   app.config['CORS_HEADERS'] = 'Content-Type'
-  # Home
+# Home
   app.register_blueprint(routes.home.home)
   app.secret_key = APP_SECRET_KEY
 
-  # Files
+# Files
   app.register_blueprint(routes.file.file)
 
 
