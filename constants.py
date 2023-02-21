@@ -1,0 +1,3 @@
+FREE_TRIAL = True
+FREE_TRIAL_DAYS = 7
+STRIPE_CHECKOUT_MODE = "subscription"

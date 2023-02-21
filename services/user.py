@@ -1,134 +1,140 @@
+import logging
+import os
 import uuid
-from threading import Thread
 
-from sqlalchemy.orm import scoped_session
+from google.auth.transport import requests
+from google.oauth2.id_token import verify_oauth2_token
+from sqlalchemy import update
+from sqlalchemy.exc import OperationalError
 
-from data_access import User, VerificationRequest, DBQuery
-from exceptions import UserNotFoundException, DuplicateUserException
-from util.app import db, get_phone_number, generate_code
-from util.twilio import send_verification_code
+from data_access import User, DBQuery, WaitList
+from exceptns import UserNotFoundException
+from util.app import db
+
+logger = logging.getLogger()
 
 
-def build_user_object(user):
+def build_user_object(user: User):
   return {
     'uuid': user.uuid,
     'email': user.email,
-    'phone_number': user.phone_number,
-    'dob': user.dob,
-    'verified': user.verified,
-    'channel': user.channel.name,
-    'country': user.country,
+    'dob': user.dob or None,
+    'country': user.country or None,
     'is_admin': user.is_admin,
     'first_name': user.first_name,
-    'last_name': user.last_name
+    'last_name': user.last_name or None,
+    'timezone': user.timezone or None
   }
 
 
 class UserService:
-  def __init__(self):
-    self.user_query: DBQuery[User] = db.session.query(User)
-    self.verification_query: DBQuery[VerificationRequest] = db.session.query(VerificationRequest)
-    self.session: scoped_session = db.session
 
-  def find_user(self, user_id: uuid.UUID):
-    user = self.user_query.filter(User.uuid == str(user_id)).first()
-    if user is None:
+  @classmethod
+  def find_user(cls, user_id: uuid.UUID):
+    try:
+      user = User.query.filter_by(uuid=str(user_id)).first()
+      if user is None:
+        raise UserNotFoundException('Unable to find user.')
+      return user
+    except Exception as e:
+      logger.error(e)
+      db.session.rollback()
       raise UserNotFoundException('Unable to find user.')
-    return user
+    finally:
+      db.session.close()
 
-  def create_user(self, request: dict):
-    __id__ = uuid.uuid5(uuid.NAMESPACE_URL, request['email'])
+  def login_or_register(self, request: dict) -> [bool, str, User]:
+
+    claims = verify_oauth2_token(request['token'], requests.Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
+    if not claims['email_verified']:
+      raise Exception('User email has not been verified by Google.')
+
+    __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
 
     try:
-      if old_user := self.find_user(__id__):
-        if old_user.verified:
-          raise DuplicateUserException('A user with this email already exists.')
-        self.send_verification(old_user)
-        old_user = build_user_object(old_user)
-        return True, 'User created, not verified. Verification code sent', old_user
-
+      existing_user = self.find_user(__id__)
     except UserNotFoundException:
-      pass  # We create the user instead
+      existing_user = None
+    if existing_user:
+      user = build_user_object(existing_user)
+      user["new_user"] = False
+      return True, 'User already exists', user
 
     new_user = User(
-      first_name=request['first_name'],
-      last_name=request['last_name'],
+      first_name=claims['given_name'],
+      last_name=claims.get('family_name', None),
       uuid=__id__,
-      email=request['email'],
-      phone_number=request['phone_number'],
-      dob=request['dob'],
-      verified=False,
-      is_admin=request.get('is_admin', False),
-      channel=request['channel'],
-      country=request['country']
+      email=claims['email']
     )
-    self.session.add(new_user)
-    self.session.commit()
+    try:
+      db.session.add(new_user)
+      db.session.commit()
+    except Exception as e:
+      logger.error(e)
+      db.session.rollback()
+    finally:
+      db.session.close()
 
     user = self.find_user(__id__)
-
-    if user:
-      self.send_verification(user)
-
-    return True, 'User created on DB', build_user_object(user)
-
-  def verify_user(self, request: dict) -> (bool, str):
-    if code_record := self.verification_query.filter(
-        VerificationRequest.verification_code == request['verification_code'],
-        VerificationRequest.user_id == request['uuid']
-    ):
-      status, message = self.update_user({
-        'verified': True,
-        'uuid': request['uuid']
-      })
-      if not status:
-        return False, message
-      self.delete_verification_code(code_record)
-      return True, 'Successfully verified user.'
-    return False, 'code is invalid (incorrect)'
-
-  def save_verification_code(self, request):
-    try:
-      code = VerificationRequest(
-        user_id=request['uuid'],
-        verification_code=request['code']
-      )
-      self.session.add(code)
-      self.session.commit()
-    except Exception:
-      return False, 'Unable to save verification code'
+    user = build_user_object(user)
+    user["new_user"] = True
+    return True, 'User created on DB', user
 
   @classmethod
   def delete_verification_code(cls, data: DBQuery):
+    """
+    This method does not commit deletes.
+    Ensure you commit the session after deletion.
+    """
     try:
-      count = data.delete(synchronize_session='evaluate')
-      print(count)
+      _ = data.delete(synchronize_session='evaluate')
     except Exception as e:
-      pass  # TODO: Log error
+      logger.error(e)
 
-  def update_user(self, request: dict, user: DBQuery = None):
+  @classmethod
+  def update_user(cls, request: dict, user: User = None) -> [bool, str, dict]:
     if user is None:
       try:
-        user = self.session.query(User).filter({
-          User.uuid: request['uuid']
-        }).with_hint(User, 'USE INDEX uuid')
+        user = cls.find_user(request['uuid'])
       except KeyError:
-        return False, 'uuid is missing'
+        return False, 'uuid is missing', {}
 
-    count = user.update({
-      key: value for key, value in request.items()
-    }, synchronize_session='evaluate')
-    if count == 0:
-      return False, 'Update failed'
-    return True, 'Update succeeded'
+    try:
+      statement = (update(User)
+                   .where(User.uuid == user.uuid)
+                   .values(**request)
+                   .execution_options(synchronize_session=False))
 
-  def send_verification(self, user):
-    phone_number = get_phone_number(user.country, user.phone_number)
-    code = generate_code()
-    # Send code to user through channel
-    twilio_thread = Thread(target=send_verification_code,
-                           args=(phone_number, user.channel.name, code))
-    twilio_thread.start()
+      db.session.execute(statement=statement)
+      db.session.commit()
 
-    # Save to DB
-    self.save_verification_code({'uuid': user.uuid, 'code': code})
+      user = cls.find_user(uuid.UUID(user.uuid))
+      user_info = build_user_object(user)
+
+      return True, 'Update succeeded', user_info
+
+    except Exception as e:
+      logger.error(e)
+      db.session.rollback()
+      return False, 'Update failed', {}
+    finally:
+      db.session.close()
+
+  @classmethod
+  def add_to_waitlist(cls, email) -> bool:
+    try:
+      if _ := WaitList.query.filter(WaitList.email == email).first():
+        return True
+      else:
+        waiter = WaitList(
+          email=email,
+        )
+        db.session.add(waiter)
+        # Thread(target=send_email, args=[email]).start()
+      db.session.commit()
+      return True
+    except OperationalError:
+      db.session.rollback()
+      return False
+    finally:
+      db.session.close()
