@@ -3,7 +3,7 @@ import os
 
 from flask import Blueprint, request
 
-from schema import UserVerificationSchema, validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
+from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 import services
 from services import build_user_object
 
@@ -60,46 +60,6 @@ def update_user():
   except Exception as e:
     logger.error(e)
     message = {'success': False, 'message': 'Unable to update user info'}
-    return message, 500
-
-
-@user.route(f'/{VERSION}/user/code', methods=['POST'])
-def send_verification_code():
-  user_info = request.environ['user']
-
-  try:
-    if not user_info:
-      message = {'success': True, 'message': 'Unable to find user.'}
-      return message, 404
-
-    user_service.send_verification(user_info)
-    message = {"success": True, "message": "Verification code sent"}
-    return message, 200
-
-  except Exception as e:
-    logger.error(f"Unable to fetch user.", e)
-    return {"success": False, "message": "Unable to send verification code."}, 500
-
-
-@user.route(f'/{VERSION}/user/verify', methods=['POST'])
-def verify_user():
-  request_data = request.args
-  valid, data = validate_request(request_data, UserVerificationSchema())
-
-  if not valid:
-    message = {'errors': data, 'success': False}
-    return message, 400
-
-  try:
-    status, message = user_service.verify_user(request.environ['user'], data['code'])
-    if status:
-        # todo: Tell they have been successfully verified.
-      message = {'success': True, 'message': message}
-      return message, 200
-    message = {'success': False, 'message': message}
-    return message, 400
-  except Exception as e:
-    message = {'success': False, 'message': 'Unable to verify user'}
     return message, 500
 
 

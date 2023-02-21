@@ -62,7 +62,7 @@ class UserService:
 
     new_user = User(
       first_name=claims['given_name'],
-      last_name=claims['family_name'],
+      last_name=claims.get('family_name', None),
       uuid=__id__,
       email=claims['email']
     )
