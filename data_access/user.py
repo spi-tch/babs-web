@@ -1,4 +1,12 @@
+import logging
+
+from sqlalchemy import update
+from sqlalchemy.exc import OperationalError
+
+from exceptns import UserNotFoundException
 from util.app import db
+
+logger = logging.getLogger(__name__)
 
 
 class User(db.Model):
@@ -10,11 +18,13 @@ class User(db.Model):
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
-  email = db.Column(db.String(50), nullable=True, index=True)
+  email = db.Column(db.String(50), nullable=False, index=True)
   dob = db.Column(db.DATE, nullable=True)
   country = db.Column(db.String(2), nullable=True)
   is_admin = db.Column(db.Boolean, nullable=False, default=False)
   timezone = db.Column(db.String(30), nullable=True)
+  sub_expires_at = db.Column(db.TIMESTAMP, nullable=True)
+  tier = db.Column(db.String, nullable=True)
 
   def __repr__(self):
     return f'User: {self.first_name} {self.last_name}; Country: {self.country}'
@@ -35,3 +45,91 @@ class WaitList(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   email = db.Column(db.String, nullable=False, index=True)
+
+
+def find_user_by_uuid(user_uuid: str) -> User:
+  try:
+    user = User.query.filter_by(uuid=str(user_uuid)).first()
+    if user is None:
+      raise UserNotFoundException('Unable to find user.')
+    return user
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    raise UserNotFoundException('Unable to find user.')
+  finally:
+    db.session.close()
+
+
+def find_user_by_id(user_id: int) -> User:
+  try:
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+      raise None
+    return user
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    raise UserNotFoundException('Unable to find user.')
+  finally:
+    db.session.close()
+
+
+def create_user(user: User):
+  try:
+    db.session.add(user)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+
+def update_user(user: User, _update: dict):
+  try:
+    statement = (update(User)
+                 .where(User.uuid == user.uuid)
+                 .values(**_update)
+                 .execution_options(synchronize_session=False))
+
+    db.session.execute(statement=statement)
+    db.session.commit()
+    return True
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
+
+
+def create_waitlister(email: str):
+  try:
+    if _ := WaitList.query.filter(WaitList.email == email).first():
+      return True
+    else:
+      waiter = WaitList(
+        email=email,
+      )
+      db.session.add(waiter)
+      # Thread(target=send_email, args=[email]).start()
+    db.session.commit()
+    return True
+  except OperationalError:
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
+
+
+def get_stripe_customer(stripe_id: str) -> StripeCustomer:
+  try:
+    customer = StripeCustomer.query.filter_by(stripe_id=stripe_id).first()
+    return customer
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    raise UserNotFoundException(f"User not found for stripe customer - {stripe_id}")
+  finally:
+    db.session.close()

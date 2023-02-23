@@ -5,7 +5,8 @@ from threading import Thread
 from sqlalchemy import update
 from sqlalchemy.exc import OperationalError
 
-from data_access import VerificationRequest, Channel, BabsEvent
+from data_access import VerificationRequest, Channel, delete_user_events, delete_user_channel, get_user_channels, \
+  get_channel, get_verification_request, update_verification_request, create_verification_request
 from util.app import db, generate_code
 
 logger = logging.getLogger()
@@ -19,105 +20,51 @@ class ChannelService:
 
   @classmethod
   def create_channel(cls, channel: str, user: str) -> [bool, str, dict]:
-    verification_code = generate_code()
+    verification_code = int(generate_code())
     verification_link = f"{chat_links[channel]}{verification_code if channel == 'whatsapp' else ''}"
-    try:
-      request = VerificationRequest.query.filter_by(user_id=user).first()
-      if request:
-        statement = (update(VerificationRequest)
-                     .where(VerificationRequest.user_id == user)
-                     .values({"verification_code": verification_code})
-                     .execution_options(synchronize_session=False))
-
-        db.session.execute(statement=statement)
-        db.session.commit()
-
+    verification_request = get_verification_request(user)
+    if verification_request:
+      updated = update_verification_request(verification_request, verification_code)
+      if updated:
         return True, 'Verification request created.', {
           'verification_code': verification_code,
           'verification_link': verification_link
         }
-
-      verification_request = VerificationRequest(
-        channel=channel,
-        user_id=user,
-        verification_code=verification_code
-      )
-      db.session.add(verification_request)
-      db.session.commit()
+    if create_verification_request(user, channel, verification_code):
       return True, 'Verification request created.', {
         'verification_code': verification_code,
         'verification_link': verification_link
       }
-
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Unable to create verification request.', e)
-      return False, 'Could not create verification request.', None
-    finally:
-      db.session.close()
+    return False, 'Unable to create verification request.', None
 
   @classmethod
   def get_channel(cls, request: dict) -> [bool, str, dict]:
-    try:
-      channel = Channel.query.filter_by(user_uuid=request['user_uuid']).first()
-      if channel is None:
-        return False, 'No channel found.', None
-      return True, 'Channel found.', {
-        'sender_id': channel.sender_id,
-        'channel': channel.name,
-        'verified': channel.verified
-      }
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not get verification request.', e)
-      return False
-    finally:
-      db.session.close()
+    channel = get_channel(request['user_uuid'])
+    if channel is None:
+      return False, 'No channel found.', None
+    return True, 'Channel found.', {
+      'sender_id': channel.sender_id,
+      'channel': channel.name,
+      'verified': channel.verified
+    }
 
   @classmethod
   def get_channels(cls, uuid: str) -> [bool, str, list]:
-    try:
-      channels = Channel.query.filter_by(user_uuid=uuid).all()
-      if channels is None:
-        return False, 'No channels found.', None
-      return True, 'Channels found.', [{
-        'sender_id': channel.sender_id,
-        'channel': channel.name
-      } for channel in channels]
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not get verification request.', e)
-      return False
-    finally:
-      db.session.close()
+    channels = get_user_channels(uuid)
+    if channels is None:
+      return False, 'No channels found.', None
+    return True, 'Channels found.', [{
+      'sender_id': channel.sender_id,
+      'channel': channel.name
+    } for channel in channels]
+
 
   @classmethod
   def remove_channel(cls, user_id: str, sender_id: str) -> [bool, str]:
-    try:
-      channel = Channel.query.filter_by(sender_id=sender_id, user_uuid=user_id).first()
-      if channel is None:
-        return False, 'No channel found.'
-
-      Thread(target=cls.delete_events, args=[user_id]).run()
-      db.session.delete(channel)
-      db.session.commit()
-      return True, 'Channel removed.'
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not remove channel.', e)
-      return False, 'Could not remove channel.'
-    finally:
-      db.session.close()
+    status, message = delete_user_channel(user_id, sender_id)
+    Thread(target=cls.delete_events, args=[user_id]).run()
+    return status, message
 
   @classmethod
   def delete_events(cls, user_id: str):
-    try:
-      delete_events_fn = BabsEvent.__table__.delete().where(BabsEvent.user_id.__eq__(user_id))
-    # todo: Do not delete events, just edit sender_id to None
-      db.session.execute(delete_events_fn)
-      db.session.commit()
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not delete events.', e)
-    finally:
-      db.session.close()
+    delete_user_events(user_id)

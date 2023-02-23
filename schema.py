@@ -1,5 +1,7 @@
 from marshmallow import Schema, fields, ValidationError, validate
 
+from constants import BASIC_PLAN, PREMIUM_PLAN
+
 
 class BaseSchema(Schema):
   pass
@@ -71,7 +73,7 @@ class GetChannelSchema(BaseSchema):
 
 class CreateSubscriptionSchema(BaseSchema):
   plan = fields.String(required=True,
-                       validate=validate.OneOf(['basic', 'premium']),
+                       validate=validate.OneOf([BASIC_PLAN, PREMIUM_PLAN]),
                        error_messages={
                          'required': 'this field is mandatory.',
                          'invalid': 'invalid, pass a valid string.'

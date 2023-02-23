@@ -24,9 +24,13 @@ def create_subscription():
     return message, 400
 
   try:
-    status, message, session = billing_service.create_checkout_session(data, request.environ["user"].id)
+    status, message, session = billing_service.create_checkout_session(data, request.environ["user"])
     if status:
       return redirect(session.url, code=303)
+
+    if "update" in message and "requested" in message:
+      message = {'success': True, 'message': message}
+      return message, 200
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:
@@ -60,4 +64,33 @@ def get_cards():
   except Exception as e:
     logger.error(e)
     message = {'success': False, 'message': f'Unable to get cards.'}
+    return message, 500
+
+
+@subscription.route(f'/webhooks/stripe', methods=['POST'])
+def stripe_webhook():
+  """Handle Stripe webhooks"""
+  try:
+    billing_service.handle_stripe_webhook(
+      request.data,
+      request.headers.get('Stripe-Signature')
+    )
+    return {'success': True}, 200
+  except Exception as e:
+    logger.error(e)
+    return {'success': False, 'message': 'Unable to handle webhook'}, 400
+
+
+@subscription.route(f'/{VERSION}/subscription', methods=['DELETE'])
+def cancel_subscription():
+  """Cancel a subscription"""
+  try:
+    status, message = billing_service.cancel_subscription(request.environ["user"].id)
+    if status:
+      return {'success': True}, 200
+    message = {'success': False, 'message': message}
+    return message, 400
+  except Exception as e:
+    logger.error(e)
+    message = {'success': False, 'message': f'Unable to cancel subscription.'}
     return message, 500

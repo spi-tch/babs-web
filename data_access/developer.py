@@ -108,3 +108,12 @@ class Watch(db.Model):
   user_id = db.Column(db.String, db.ForeignKey('user.uuid'), nullable=False)
   latest = db.Column(db.String, nullable=False)
   app_name = db.Column(db.String, nullable=False)
+
+
+def delete_watch(user_id, app_name):
+  watch = Watch.query.filter_by(user_id=user_id, app_name=app_name).first()
+  if watch:
+    db.session.delete(watch)
+    db.session.commit()
+    return True
+  return False

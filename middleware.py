@@ -15,7 +15,7 @@ SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
                        f'/{VERSION}/admin/find_user',
                        f'/{VERSION}/wait', '/',
                        f'/logo', f'/logowtext',
-                       '/auth_callback']
+                       '/auth_callback', '/webhooks/stripe']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
