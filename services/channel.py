@@ -2,12 +2,10 @@ import logging
 import os
 from threading import Thread
 
-from sqlalchemy import update
-from sqlalchemy.exc import OperationalError
-
-from data_access import VerificationRequest, Channel, delete_user_events, delete_user_channel, get_user_channels, \
-  get_channel, get_verification_request, update_verification_request, create_verification_request
-from util.app import db, generate_code
+from configs import ChannelConf
+from data_access import delete_user_events, delete_user_channel, get_user_channels, \
+  get_channel, get_verification_request, update_verification_request, create_verification_request, update_channel_config
+from util.app import generate_code
 
 logger = logging.getLogger()
 chat_links = {
@@ -38,14 +36,14 @@ class ChannelService:
     return False, 'Unable to create verification request.', None
 
   @classmethod
-  def get_channel(cls, request: dict) -> [bool, str, dict]:
-    channel = get_channel(request['user_uuid'])
+  def get_channel(cls, user_id: str, name: str) -> [bool, str, dict]:
+    channel = get_channel(user_id, name)
     if channel is None:
       return False, 'No channel found.', None
     return True, 'Channel found.', {
       'sender_id': channel.sender_id,
       'channel': channel.name,
-      'verified': channel.verified
+      'config': ChannelConf.from_string(channel.config)
     }
 
   @classmethod
@@ -58,7 +56,6 @@ class ChannelService:
       'channel': channel.name
     } for channel in channels]
 
-
   @classmethod
   def remove_channel(cls, user_id: str, sender_id: str) -> [bool, str]:
     status, message = delete_user_channel(user_id, sender_id)
@@ -68,3 +65,14 @@ class ChannelService:
   @classmethod
   def delete_events(cls, user_id: str):
     delete_user_events(user_id)
+
+  def update_channel_config(self, user_id: str, channel_name: str, config: dict) -> [bool, str]:
+    # validate channel config
+    try:
+      conf = ChannelConf(**config)
+      if not update_channel_config(user_id, channel_name, f"{conf}"):
+        return False, 'Unable to update channel config.'
+      return True, 'Channel config updated.'
+    except Exception as e:
+      logger.error(e)
+      return False, 'Unable to update channel config.'

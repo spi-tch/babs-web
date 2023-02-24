@@ -27,6 +27,7 @@ class Channel(db.Model):
                          onupdate=db.func.current_timestamp())
   user_uuid = db.Column(db.String, nullable=False)
   sender_id = db.Column(db.String, nullable=False, index=True)
+  config = db.Column(db.String, nullable=True, default='default')
 
 
 class VerificationRequest(db.Model):
@@ -68,10 +69,9 @@ def get_user_channels(user_id):
     db.session.close()
 
 
-#todo: fix  this
-def get_channel(user_id):
+def get_channel(user_id, name):
   try:
-    channel = Channel.query.filter_by(user_uuid=user_id).first()
+    channel = Channel.query.filter_by(user_uuid=user_id, name=name).first()
     return channel
   except OperationalError as e:
     db.session.rollback()
@@ -124,6 +124,24 @@ def create_verification_request(user_id: str, channel: str, verification_code: i
   except OperationalError as e:
     db.session.rollback()
     logger.error('Unable to create verification request.', e)
+    return False
+  finally:
+    db.session.close()
+
+
+def update_channel_config(user_id: str, name: str, config: str):
+  try:
+    statement = (update(Channel)
+                 .where(Channel.user_uuid == user_id)
+                 .where(Channel.name == name)
+                 .values({"config": config})
+                 .execution_options(synchronize_session=False))
+    db.session.execute(statement=statement)
+    db.session.commit()
+    return True
+  except OperationalError as e:
+    db.session.rollback()
+    logger.error('Could not update channel config.', e)
     return False
   finally:
     db.session.close()

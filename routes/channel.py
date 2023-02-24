@@ -35,9 +35,12 @@ def add_channel(channel):
 
 # Get all channels for user
 @channel.route(f'/{VERSION}/channel', methods=['GET'])
-def get_channels():
+def get_channel_and_channel_details():
   try:
-    status, message, data = channel_service.get_channels(request.environ['user'].uuid)
+    if name := request.args.get('channel'):
+      status, message, data = channel_service.get_channel(request.environ['user'].uuid, name)
+    else:
+      status, message, data = channel_service.get_channels(request.environ['user'].uuid)
     if not status:
       response = {'message': message, 'success': False}
       return response, 400
@@ -45,38 +48,28 @@ def get_channels():
     return response, 200
   except Exception as e:
     logger.error(e)
-    response = {'message': 'Unable to get channels', 'success': False}
+    response = {'message': 'Unable to get channel(s)', 'success': False}
     return response, 500
 
 
-# @channel.route(f'/{VERSION}/channel', methods=['GET'])
-# def get_channel():
-#   try:
-#     status, message, data = channel_service.get_channel(request.environ['user'].uuid)
-#     if not status:
-#       return {'message': message, 'success': False}, 400
-#     return {'message': message, 'success': True, 'data': data}, 200
-#   except Exception as e:
-#     logger.error(e)
-#     return {'message': 'Unable to get channel', 'success': False}, 500
-
-
-@channel.route(f'/{VERSION}/channel/<channel_id>', methods=['GET'])
-def get_channel_by_id(channel_id):
+@channel.route(f'/{VERSION}/channel', methods=['POST'])
+def update_channel():
   try:
-    status, message, data = channel_service.get_channel_by_id(channel_id)
+    channel_name = request.json.get('channel')
+    conf = request.json.get('config')
+    status, message = channel_service.update_channel_config(request.environ['user'].uuid, channel_name, conf)
     if not status:
       return {'message': message, 'success': False}, 400
-    return {'message': message, 'success': True, 'data': data}, 200
+    return {'message': message, 'success': True}, 200
   except Exception as e:
     logger.error(e)
-    return {'message': 'Unable to get channel', 'success': False}, 500
+    return {'message': 'Unable to update channel', 'success': False}, 500
 
 
 @channel.route(f'/{VERSION}/channel', methods=['DELETE'])
 def delete_channel():
   try:
-    sender_id = request.args.get('sender_id')
+    sender_id = request.view_args['sender_id']
     status, message = channel_service.remove_channel(request.environ['user'].uuid, sender_id)
     if not status:
       return {'message': message, 'success': False}, 400
