@@ -2,7 +2,6 @@ import logging
 import os
 from datetime import datetime
 
-from stripe.api_resources.invoice import Invoice
 from stripe.api_resources.subscription import Subscription
 
 from constants import PREMIUM_PLAN, BASIC_PLAN
@@ -14,18 +13,6 @@ logger = logging.getLogger(__name__)
 
 class UserNotFoundError:
   pass
-
-
-# def handle_successful_payment(invoice: Invoice):
-#   customer = invoice["customer"]
-#   customer = get_stripe_customer(customer)
-#   if customer is not None:
-#     if user := find_user_by_id(customer.user_id):
-#       ts = datetime.utcfromtimestamp(invoice["lines"]["data"][0]["period"]["end"])
-#       # update_user(user, {"sub_expires_at": ts})
-#       logger.warning(f"Timestamp of period end: {ts}")
-#
-#   logger.info("Payment succeeded")
 
 
 def handle_subscription_created_or_updated(subscription: Subscription):
@@ -47,9 +34,9 @@ def handle_subscription_created_or_updated(subscription: Subscription):
 
 
 def handle_subscription_deleted(subscription: Subscription):
-  # technically, we don't need to do anything here because the subscription is already deleted
-  # but we can send a mail to the user to let them know that their subscription has been cancelled
-  # we will use mailgun for that.
+    # technically, we don't need to do anything here because the subscription is already deleted,
+    # but we can send a mail to the user to let them know that their subscription has been cancelled
+    # we will use mailgun for that.
   pass
   customer = subscription["customer"]
   customer = get_stripe_customer(customer)
