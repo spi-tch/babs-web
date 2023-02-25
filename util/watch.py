@@ -6,7 +6,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from constants import GOOGLE_CAL_APP_NAME, GOOGLE_MAIL_APP_NAME
-from data_access import delete_watch, get_google_cred
+from data_access import delete_watch, get_google_cred, create_watch
 from services import UserService, build_user_object, credentials_to_dict
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,8 @@ def watch_gmail(user: dict, creds: dict) -> None:
   """Watches the user's gmail inbox for new messages."""
   service = get_gmail_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
-  service.users().watch(userId=user["email"], body=watch_request_body).execute()
+  watch = service.users().watch(userId=user["email"], body=watch_request_body).execute()
+  create_watch(user_id=user["id"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"])
   logger.info(f"Watching gmail for {user['email']}")
 
 
