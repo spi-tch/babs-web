@@ -14,4 +14,4 @@ CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted"
 
 CONF_TYPE_CHANNEL = "channel"
 CONF_TYPE_APP = "app"
-DEFAULT_CONFIG = "default"
+DEFAULT_CHANNEL_CONFIG = "default"

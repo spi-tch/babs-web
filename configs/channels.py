@@ -1,7 +1,7 @@
 import json
 
 from configs.config import BabsConf
-from constants import CONF_TYPE_CHANNEL, DEFAULT_CONFIG
+from constants import CONF_TYPE_CHANNEL, DEFAULT_CHANNEL_CONFIG
 
 
 class ChannelConf(BabsConf):
@@ -23,6 +23,6 @@ class ChannelConf(BabsConf):
 
   @classmethod
   def from_string(cls, string):
-    if string == DEFAULT_CONFIG:
+    if string == DEFAULT_CHANNEL_CONFIG:
       return cls(notification=True, quiet=False, on_pause=False, quiet_schedule={})
     return cls(**json.loads(string))

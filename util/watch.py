@@ -43,6 +43,7 @@ def watch_calendar(user: dict, creds: dict) -> None:
   service = get_calendar_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
+  create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0)
   logger.info(f"Watching calendar for {user['email']}")
 
 

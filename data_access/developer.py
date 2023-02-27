@@ -117,3 +117,10 @@ def delete_watch(user_id, app_name):
     db.session.commit()
     return True
   return False
+
+
+def create_watch(user_id, app_name, latest):
+  watch = Watch(user_id=user_id, app_name=app_name, latest=latest)
+  db.session.add(watch)
+  db.session.commit()
+  return True
