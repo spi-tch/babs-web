@@ -38,7 +38,7 @@ def add_app():
   authorization_url, state = flow.authorization_url(
     access_type="offline",
     include_granted_scopes="true",
-    login_hint=request.environ["user"].email,
+    # login_hint=request.environ["user"].email,
     prompt="consent", state=state)
 
   return {"redirect_url": authorization_url}, 200

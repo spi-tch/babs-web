@@ -20,6 +20,7 @@ class GoogleCreds(db.Model):
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
+  email = db.Column(db.String, nullable=False)
 
 
 def create_google_cred(user_id, credentials):
@@ -30,7 +31,8 @@ def create_google_cred(user_id, credentials):
     token_uri=credentials.token_uri,
     client_id=credentials.client_id,
     client_secret="credentials.client_secret",  # todo: fix this
-    scopes=credentials.scopes
+    scopes=credentials.scopes,
+    email=credentials.email
   )
 
   try:
@@ -45,9 +47,9 @@ def create_google_cred(user_id, credentials):
     db.session.close()
 
 
-def get_google_cred(user_id):
+def get_google_cred(user_id, email):
   try:
-    creds = GoogleCreds.query.filter_by(user=user_id).first()
+    creds = GoogleCreds.query.filter_by(user=user_id, email=email).first()
     if creds is None:
       return None
     return creds
