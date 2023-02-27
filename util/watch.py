@@ -51,7 +51,7 @@ def delete_gmail_watch(user_id: str) -> None:
   """Deletes the gmail watch for the given user."""
   user = UserService.find_user(uuid.UUID(user_id))
   user = build_user_object(user)
-  creds = credentials_to_dict(get_google_cred(user_id))
+  creds = credentials_to_dict(get_google_cred(user_id, user["email"]))
   service = get_gmail_service(creds)
   try:
     service.users().stop(userId=user["email"]).execute()
