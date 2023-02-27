@@ -1,6 +1,9 @@
 import enum
+import logging
 
 from util.app import db
+
+logger = logging.getLogger(__name__)
 
 
 class ParamType(enum.Enum):
@@ -111,16 +114,30 @@ class Watch(db.Model):
 
 
 def delete_watch(user_id, app_name):
-  watch = Watch.query.filter_by(user_id=user_id, app_name=app_name).first()
-  if watch:
-    db.session.delete(watch)
-    db.session.commit()
-    return True
-  return False
+  try:
+    watch = Watch.query.filter_by(user_id=user_id, app_name=app_name).first()
+    if watch:
+      db.session.delete(watch)
+      db.session.commit()
+      return True
+    return False
+  except Exception as e:
+    db.session.rollback()
+    logger.error('Could not delete watch.', e)
+    return False
+  finally:
+    db.session.close()
 
 
 def create_watch(user_id, app_name, latest):
-  watch = Watch(user_id=user_id, app_name=app_name, latest=latest)
-  db.session.add(watch)
-  db.session.commit()
-  return True
+  try:
+    watch = Watch(user_id=user_id, app_name=app_name, latest=latest)
+    db.session.add(watch)
+    db.session.commit()
+    return True
+  except Exception as e:
+    db.session.rollback()
+    logger.error('Could not crate watch', e)
+    return False
+  finally:
+    db.session.close()
