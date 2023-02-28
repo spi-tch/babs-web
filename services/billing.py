@@ -6,10 +6,13 @@ from stripe.api_resources.customer import Customer
 from stripe.error import SignatureVerificationError
 
 from constants import (STRIPE_CHECKOUT_MODE, CUSTOMER_SUBSCRIPTION_DELETED,
-                       CUSTOMER_SUBSCRIPTION_CREATED, CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN)
+                       CUSTOMER_SUBSCRIPTION_CREATED, CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN,
+                       PAYMENT_INTENT_SUCCEEDED, PAYMENT_INTENT_FAILED)
 from data_access import StripeCustomer, User
+from data_access.payment import Payment
 from util.app import db
-from util.handler import handle_subscription_created_or_updated, handle_subscription_deleted
+from util.handler import handle_subscription_created_or_updated, handle_subscription_deleted, \
+  handle_payment_success_or_failure
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID")
@@ -127,16 +130,17 @@ class BillingService:
     elif event["type"] == CUSTOMER_SUBSCRIPTION_DELETED:
       handle_subscription_deleted(data_object)
       logger.info("Subscription deleted")
-    elif event["type"] == "invoice.payment_succeeded":
-      logger.info("Subscription updated")
+    elif event["type"] == PAYMENT_INTENT_SUCCEEDED or event["type"] == PAYMENT_INTENT_FAILED:
+      handle_payment_success_or_failure(data_object)
+      logger.info("Got payment intent info")
 
     return True, "Success", None
 
   @classmethod
-  def cancel_subscription(cls, user_id):
+  def get_payment_status(cls, user_id):
     try:
-      customer = StripeCustomer.query.filter_by(user_id=user_id).first()
-      stripe.Subscription.delete(customer.subscription_id)
-      return True, "Success", None
+      customer = Payment.query.filter_by(user_uuid=user_id).first()
+      subscription = stripe.Subscription.retrieve(customer.subscription_id)
+      return True, "Success", subscription
     except Exception as e:
-      return False, f"Unable to cancel subscription: {e}", None
+      return False, f"Unable to get payment status: {e}", None

@@ -28,7 +28,7 @@ def watch_gmail(user: dict, creds: dict) -> None:
   service = get_gmail_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
   watch = service.users().watch(userId=user["email"], body=watch_request_body).execute()
-  create_watch(user_id=user["id"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"])
+  create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"])
   logger.info(f"Watching gmail for {user['email']}")
 
 
@@ -47,26 +47,24 @@ def watch_calendar(user: dict, creds: dict) -> None:
   logger.info(f"Watching calendar for {user['email']}")
 
 
-def delete_gmail_watch(user_id: str) -> None:
+def delete_gmail_watch(user_id: str, email) -> None:
   """Deletes the gmail watch for the given user."""
-  user = UserService.find_user(uuid.UUID(user_id))
-  user = build_user_object(user)
-  creds = credentials_to_dict(get_google_cred(user_id, user["email"]))
+  creds = credentials_to_dict(get_google_cred(user_id, email))
   service = get_gmail_service(creds)
   try:
-    service.users().stop(userId=user["email"]).execute()
+    service.users().stop(userId=email).execute()
   except Exception as e:
-    logger.error(f"Unable to delete gmail watch for {user['email']}", e)
+    logger.error(f"Unable to delete gmail watch for {email}", e)
     raise e
   delete_watch(user_id=user_id, app_name=GOOGLE_MAIL_APP_NAME)
-  logger.info(f"Deleted gmail watch for {user['email']}")
+  logger.info(f"Deleted gmail watch for {email}")
 
 
 def delete_calendar_watch(user_id: str) -> None:
   """Deletes the calendar watch for the given user."""
   user = UserService.find_user(uuid.UUID(user_id))
   user = build_user_object(user)
-  creds = credentials_to_dict(get_google_cred(user_id))
+  creds = credentials_to_dict(get_google_cred(user_id, user["email"]))
   service = get_calendar_service(creds)
   watch = service.users().watch(userId=user["email"]).execute()
   service.users().stop(userId=user["email"], id=watch["id"]).execute()

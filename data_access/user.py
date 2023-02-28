@@ -133,3 +133,15 @@ def get_stripe_customer(stripe_id: str) -> StripeCustomer:
     raise UserNotFoundException(f"User not found for stripe customer - {stripe_id}")
   finally:
     db.session.close()
+
+
+def get_all_users():
+  try:
+    users = User.query.all()
+    return users
+  except Exception as e:
+    print(e)
+    db.session.rollback()
+    return False
+  finally:
+      db.session.close()

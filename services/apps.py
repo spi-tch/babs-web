@@ -1,7 +1,7 @@
 import logging
 
 from constants import GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME
-from data_access import get_app_by_user, create_app, get_user_app, delete_app
+from data_access import get_app_by_user, create_app, get_user_app, delete_app, get_app_by_email, User
 from util.watch import watch_gmail, delete_gmail_watch
 
 logger = logging.getLogger(__name__)
@@ -9,12 +9,15 @@ logger = logging.getLogger(__name__)
 
 class AppService:
   @classmethod
-  def add_app(cls, app_name: str, user: dict, creds: dict) -> [bool, str, dict]:
+  def add_app(cls, app_name: str, user: dict, creds: dict, email) -> [bool, str, dict]:
 
-    app = get_app_by_user(user["uuid"], app_name)
+    if get_app_by_email(app_name, email) is not None:
+      return False, 'Email is already in use.', None
+
+    app = get_app_by_user(user["uuid"], app_name, email)
     if app:
       return False, 'User already has this application.', None
-    if create_app(app_name, user["uuid"]):
+    if create_app(app_name, user["uuid"], email):
       if app_name == GOOGLE_MAIL_APP_NAME:
         watch_gmail(user, creds)
       elif app_name == GOOGLE_CAL_APP_NAME:
@@ -28,21 +31,24 @@ class AppService:
     apps = get_user_app(user)
     if apps is None:
       return False, 'No apps found.', None
-    return True, 'Apps found.', [app.name for app in apps]
+    return True, 'Apps found.', [{"app": app.name, "email": app.email} for app in apps]
 
   @classmethod
-  def remove_app(cls, user: str, app_name: str) -> [bool, str]:
+  def remove_app(cls, user: User, app_name: str, email: str = None) -> [bool, str]:
     # from .auth import AuthService
     # todo: revoke credentials
     # revoked, message = AuthService().revoke_creds(user)
     # if not revoked:
     #   return False, message
 
-    app = get_app_by_user(user, app_name)
+    if app_name == GOOGLE_MAIL_APP_NAME and not email:
+      return False, 'Email is required for this app.'
+    email = email if email else user.email
+    app = get_app_by_user(user.uuid, app_name, email)
     if app is None:
       return False, 'App not found.'
     if app_name == GOOGLE_MAIL_APP_NAME:
-      delete_gmail_watch(user)
+      delete_gmail_watch(user.uuid, email)
     elif app_name == GOOGLE_CAL_APP_NAME:
       # delete_calendar_watch(user)
       pass

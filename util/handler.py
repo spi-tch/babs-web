@@ -2,10 +2,12 @@ import logging
 import os
 from datetime import datetime
 
+from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
 from constants import PREMIUM_PLAN, BASIC_PLAN
 from data_access import get_stripe_customer, find_user_by_id, update_user
+from data_access.payment import get_payment_for_user, create_payment
 from exceptns import UserNotFoundException
 
 logger = logging.getLogger(__name__)
@@ -34,14 +36,25 @@ def handle_subscription_created_or_updated(subscription: Subscription):
 
 
 def handle_subscription_deleted(subscription: Subscription):
-    # technically, we don't need to do anything here because the subscription is already deleted,
-    # but we can send a mail to the user to let them know that their subscription has been cancelled
-    # we will use mailgun for that.
-  pass
   customer = subscription["customer"]
   customer = get_stripe_customer(customer)
   if customer is not None:
-    # if user := find_user_by_id(customer.user_id):
-    #   update_user(user, {"tier": BASIC_PLAN, "sub_expires_at": None})
+    if user := find_user_by_id(customer.user_id):
+      update_user(user, {"tier": None, "sub_expires_at": None})
     pass
   logger.info("Subscription deleted")
+
+
+def handle_payment_success_or_failure(payment_intent: PaymentIntent):
+  customer = payment_intent["customer"]
+  customer = get_stripe_customer(customer)
+  if customer is None:
+    raise UserNotFoundException("Stripe customer not found")
+  user = find_user_by_id(customer.user_id)
+  if user is None:
+    raise UserNotFoundException("User not found")
+  payment = get_payment_for_user(user.uuid)
+  if payment is None:
+    create_payment(user.uuid, payment_intent)
+  else:
+    update_user(user, {"tier": BASIC_PLAN, "sub_expires_at": None})

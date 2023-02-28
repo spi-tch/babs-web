@@ -69,7 +69,7 @@ def update_channel():
 @channel.route(f'/{VERSION}/channel', methods=['DELETE'])
 def delete_channel():
   try:
-    sender_id = request.view_args['sender_id']
+    sender_id = request.args.get('sender_id')
     status, message = channel_service.remove_channel(request.environ['user'].uuid, sender_id)
     if not status:
       return {'message': message, 'success': False}, 400

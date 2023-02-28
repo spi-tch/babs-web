@@ -23,7 +23,7 @@ class GoogleCreds(db.Model):
   email = db.Column(db.String, nullable=False)
 
 
-def create_google_cred(user_id, credentials):
+def create_google_cred(user_id, credentials, email):
   new_creds = GoogleCreds(
     user=user_id,
     token=credentials.token,
@@ -32,7 +32,7 @@ def create_google_cred(user_id, credentials):
     client_id=credentials.client_id,
     client_secret="credentials.client_secret",  # todo: fix this
     scopes=credentials.scopes,
-    email=credentials.email
+    email=email
   )
 
   try:
@@ -61,11 +61,28 @@ def get_google_cred(user_id, email):
     db.session.close()
 
 
-def update_google_cred(new_creds, user_id):
+def update_google_cred(new_creds, user_id, email):
+  try:
+    statement = (update(GoogleCreds)
+                 .where(GoogleCreds.user == user_id, GoogleCreds.email == email)
+                 .values(**new_creds)
+                 .execution_options(synchronize_session=False))
+    db.session.execute(statement=statement)
+    db.session.commit()
+    return True
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
+
+
+def add_email_to_cred(user_id, email):
   try:
     statement = (update(GoogleCreds)
                  .where(GoogleCreds.user == user_id)
-                 .values(**new_creds)
+                 .values(email=email)
                  .execution_options(synchronize_session=False))
     db.session.execute(statement=statement)
     db.session.commit()

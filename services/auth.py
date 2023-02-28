@@ -18,20 +18,21 @@ def credentials_to_dict(credentials):
 
 class AuthService:
   @classmethod
-  def store_google_creds(cls, user_id: str, credentials) -> [bool, str]:
+  def store_google_creds(cls, user_id: str, credentials, email) -> [bool, str]:
     """
     This function will update the credentials of a Google user. This also includes
     revocation and partial authorization
     :param user_id: The user's uuid
     :param credentials: Google Credentials
+    :param email: The user's email address
     :return: tuple (bool, str)
     """
-    if get_google_cred(user_id, credentials.email):
-      if update_google_cred(credentials_to_dict(credentials), user_id):
+    if get_google_cred(user_id, email):
+      if update_google_cred(credentials_to_dict(credentials), user_id, email):
         return True, "Credentials updated successfully"
       return False, "Failed to update credentials"
 
-    if create_google_cred(user_id, credentials):
+    if create_google_cred(user_id, credentials, email):
       return True, 'Credentials created successfully'
     return False, "Unable to create credentials"
 

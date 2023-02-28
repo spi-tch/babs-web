@@ -81,16 +81,16 @@ def stripe_webhook():
     return {'success': False, 'message': 'Unable to handle webhook'}, 400
 
 
-@subscription.route(f'/{VERSION}/subscription', methods=['DELETE'])
-def cancel_subscription():
-  """Cancel a subscription"""
+@subscription.route(f'/{VERSION}/payment', methods=['GET'])
+def get_payment_status():
+  """Get payment status"""
   try:
-    status, message = billing_service.cancel_subscription(request.environ["user"].id)
+    status, message, data = billing_service.get_payment_status(request.environ["user"].id)
     if status:
-      return {'success': True}, 200
+      return {'success': True, 'data': data}, 200
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:
     logger.error(e)
-    message = {'success': False, 'message': f'Unable to cancel subscription.'}
+    message = {'success': False, 'message': f'Unable to get payment status.'}
     return message, 500
