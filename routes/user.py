@@ -1,11 +1,10 @@
 import logging
 import os
-from datetime import datetime
 
 from flask import Blueprint, request
 
-from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 import services
+from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 from services import build_user_object
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
@@ -45,8 +44,6 @@ def register_or_login():
 @user.route(f'/{VERSION}/user/update', methods=['POST'])
 def update_user():
   request_data = request.json
-  if "dob" in request_data:
-    request_data["dob"] = datetime.strptime(request_data["dob"].split("T")[0], "%Y-%m-%d").date().strftime("%Y-%m-%d")
   valid, data = validate_request(request_data, UserUpdateSchema())
 
   if not valid:
