@@ -8,9 +8,8 @@ from stripe.error import SignatureVerificationError
 from constants import (STRIPE_CHECKOUT_MODE, CUSTOMER_SUBSCRIPTION_DELETED,
                        CUSTOMER_SUBSCRIPTION_CREATED, CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN,
                        PAYMENT_INTENT_SUCCEEDED, PAYMENT_INTENT_FAILED)
-from data_access import StripeCustomer, User
+from data_access import StripeCustomer, User, create_stripe_customer
 from data_access.payment import Payment
-from util.app import db
 from util.handler import handle_subscription_created_or_updated, handle_subscription_deleted, \
   handle_payment_success_or_failure
 
@@ -38,18 +37,7 @@ class BillingService:
     customer = StripeCustomer.query.filter_by(user_id=user.id).first()
     if customer is None:
       customer: "Customer" = stripe.Customer.create(email=user.email)
-      customer: StripeCustomer = StripeCustomer(
-        user_id=user.id,
-        stripe_id=customer.id
-      )
-      try:
-        db.session.add(customer)
-        db.session.commit()
-      except Exception as e:
-        logger.error(e)
-        db.session.rollback()
-      finally:
-        db.session.close()
+      create_stripe_customer(user.id, customer.id)
     else:
       subscriptions = stripe.Subscription.list(customer=customer.stripe_id, status="active", limit=1)
       if len(subscriptions["data"]) > 1:
@@ -64,7 +52,7 @@ class BillingService:
         }]
       )
 
-      return False, "Updated has been requested", None
+      # return True, "Update has been requested", None
 
     stripe_params = {
       "payment_method_types": ["card"],
@@ -72,8 +60,7 @@ class BillingService:
       "mode": STRIPE_CHECKOUT_MODE,
       "success_url": f"{os.getenv('FRONTEND_URL')}/app/settings",
       "cancel_url": f"{os.getenv('FRONTEND_URL')}/app/settings",
-      "customer": customer.stripe_id,
-      "payment_behavior": "default_incomplete"
+      "customer": customer.stripe_id
     }
 
     # no need for this because we're not using the trial from Stripe

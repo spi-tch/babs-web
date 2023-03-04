@@ -28,7 +28,7 @@ def create_subscription():
     if status:
       return redirect(session.url, code=303)
 
-    if "update" in message and "requested" in message:
+    if "update" in message.lower() and "requested" in message.lower():
       message = {'success': True, 'message': message}
       return message, 200
     message = {'success': False, 'message': message}

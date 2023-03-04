@@ -135,6 +135,21 @@ def get_stripe_customer(stripe_id: str) -> StripeCustomer:
     db.session.close()
 
 
+def create_stripe_customer(user_id, customer_id):
+  customer: StripeCustomer = StripeCustomer(
+    user_id=user_id,
+    stripe_id=customer_id
+  )
+  try:
+    db.session.add(customer)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+
 def get_all_users():
   try:
     users = User.query.all()
