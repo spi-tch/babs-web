@@ -42,15 +42,16 @@ class BillingService:
       subscriptions = stripe.Subscription.list(customer=customer.stripe_id, status="active", limit=1)
       if len(subscriptions["data"]) > 1:
         raise Exception("Customer has more than one active subscription")
-      subscription = subscriptions["data"][0]
-      stripe.Subscription.modify(
-        subscription["id"],
-        proration_behavior="always_invoice",
-        items=[{
-          "id": subscription["items"]["data"][0]["id"],
-          "price": price_id
-        }]
-      )
+      if len(subscriptions["data"]) == 1:
+        subscription = subscriptions["data"][0]
+        stripe.Subscription.modify(
+          subscription["id"],
+          proration_behavior="always_invoice",
+          items=[{
+            "id": subscription["items"]["data"][0]["id"],
+            "price": price_id
+          }]
+        )
 
       # return True, "Update has been requested", None
 
