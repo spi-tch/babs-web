@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 billing_service = services.BillingService()
 
 
-@subscription.route(f'/{VERSION}/subscription', methods=['GET'])
+@subscription.route(f'/{VERSION}/subscription', methods=['POST'])
 def create_subscription():
   """Create a new subscription, use Stripe"""
-  request_data = request.json
+  request_data = request.form
   valid, data = validate_request(request_data, CreateSubscriptionSchema())
 
   if not valid:
@@ -39,7 +39,7 @@ def create_subscription():
     return message, 500
 
 
-@subscription.route(f'/{VERSION}/billing_portal', methods=['GET'])
+@subscription.route(f'/{VERSION}/billing_portal', methods=['POST'])
 def create_portal():
   try:
     status, message, session = billing_service.create_portal_session(request.environ["user"].id)
@@ -50,20 +50,6 @@ def create_portal():
   except Exception as e:
     logger.error(e)
     message = {'success': False, 'message': f'Unable to create portal session.'}
-    return message, 500
-
-
-@subscription.route(f'/{VERSION}/cards', methods=['GET'])
-def get_cards():
-  try:
-    status, message, cards = billing_service.get_cards(request.environ["user"].id)
-    if status:
-      return {'success': True, 'cards': cards}
-    message = {'success': False, 'message': message}
-    return message, 400
-  except Exception as e:
-    logger.error(e)
-    message = {'success': False, 'message': f'Unable to get cards.'}
     return message, 500
 
 

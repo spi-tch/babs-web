@@ -87,19 +87,6 @@ class BillingService:
       return False, f"Unable to create portal session: {e}", None
 
   @classmethod
-  def get_cards(cls, user_id):
-    try:
-      customer = StripeCustomer.query.filter_by(user_id=user_id).first()
-      cards = stripe.Customer.list_sources(
-        id=customer.stripe_id,
-        object="card",
-        limit=3
-      )
-      return True, "Success", cards
-    except Exception as e:
-      return False, f"Unable to get cards: {e}", None
-
-  @classmethod
   def handle_stripe_webhook(cls, data: bytes, signature: str):
     try:
       event = stripe.Webhook.construct_event(data, signature, os.getenv("STRIPE_WEBHOOK_SECRET"))
