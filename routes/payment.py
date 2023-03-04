@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 
 import services
 from schema import CreateSubscriptionSchema, validate_request
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 billing_service = services.BillingService()
 
 
-@subscription.route(f'/{VERSION}/subscription', methods=['POST'])
+@subscription.route(f'/{VERSION}/subscription', methods=['GET'])
 def create_subscription():
   """Create a new subscription, use Stripe"""
   request_data = request.json
@@ -26,8 +26,7 @@ def create_subscription():
   try:
     status, message, session = billing_service.create_checkout_session(data, request.environ["user"])
     if status:
-        # todo: fix redirect issue
-      return {"redirect_url": session.url}, 200
+      return redirect(session.url, code=303)
 
     if "update" in message.lower() and "requested" in message.lower():
       message = {'success': True, 'message': message}
@@ -40,13 +39,12 @@ def create_subscription():
     return message, 500
 
 
-@subscription.route(f'/{VERSION}/billing_portal', methods=['POST'])
+@subscription.route(f'/{VERSION}/billing_portal', methods=['GET'])
 def create_portal():
   try:
     status, message, session = billing_service.create_portal_session(request.environ["user"].id)
     if status:
-        # todo: fix redirect issue
-      return {"redirect_url": session.url}, 200
+      return redirect(session.url, code=303)
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:
