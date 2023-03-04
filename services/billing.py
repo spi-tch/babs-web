@@ -8,10 +8,10 @@ from stripe.error import SignatureVerificationError
 from constants import (STRIPE_CHECKOUT_MODE, CUSTOMER_SUBSCRIPTION_DELETED,
                        CUSTOMER_SUBSCRIPTION_CREATED, CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN,
                        PAYMENT_INTENT_SUCCEEDED, PAYMENT_INTENT_FAILED)
-from data_access import StripeCustomer, User, create_stripe_customer
+from data_access import StripeCustomer, User, create_stripe_customer, get_stripe_customer_by_user_id
 from data_access.payment import Payment
-from util.handler import handle_subscription_created_or_updated, handle_subscription_deleted, \
-  handle_payment_success_or_failure
+from util.handler import (handle_subscription_created_or_updated, handle_subscription_deleted,
+                          handle_payment_success_or_failure)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID")
@@ -34,7 +34,7 @@ class BillingService:
     else:
       return False, "Invalid plan", None
 
-    customer = StripeCustomer.query.filter_by(user_id=user.id).first()
+    customer: StripeCustomer = get_stripe_customer_by_user_id(user.id)
     if customer is None:
       customer: "Customer" = stripe.Customer.create(email=user.email)
       create_stripe_customer(user.id, customer.id)

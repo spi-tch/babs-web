@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request
 
 import services
 from schema import CreateSubscriptionSchema, validate_request
@@ -26,7 +26,8 @@ def create_subscription():
   try:
     status, message, session = billing_service.create_checkout_session(data, request.environ["user"])
     if status:
-      return redirect(session.url, code=303)
+        # todo: fix redirect issue
+      return {"redirect_url": session.url}, 200
 
     if "update" in message.lower() and "requested" in message.lower():
       message = {'success': True, 'message': message}
@@ -44,7 +45,8 @@ def create_portal():
   try:
     status, message, session = billing_service.create_portal_session(request.environ["user"].id)
     if status:
-      return redirect(session.url, code=303)
+        # todo: fix redirect issue
+      return {"redirect_url": session.url}, 200
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:
