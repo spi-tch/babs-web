@@ -3,8 +3,8 @@ import os
 
 from flask import Blueprint, request
 
-from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 import services
+from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 from services import build_user_object
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
