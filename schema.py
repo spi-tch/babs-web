@@ -78,6 +78,11 @@ class CreateSubscriptionSchema(BaseSchema):
                          'required': 'this field is mandatory.',
                          'invalid': 'invalid, pass a valid string.'
                        })
+  Authorization = fields.String(required=True,
+                                error_messages={
+                                  'required': 'this field is mandatory.',
+                                  'invalid': 'invalid, pass a valid string.'
+                                })
 
 
 def validate_request(json_object, schema: BaseSchema):

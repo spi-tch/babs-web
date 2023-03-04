@@ -1,9 +1,13 @@
 import logging
 import os
+import uuid
 
+import requests
 from flask import Blueprint, request, redirect
+from google.oauth2.id_token import verify_oauth2_token
 
 import services
+from data_access import find_user_by_uuid
 from schema import CreateSubscriptionSchema, validate_request
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
@@ -24,7 +28,13 @@ def create_subscription():
     return message, 400
 
   try:
-    status, message, session = billing_service.create_checkout_session(data, request.environ["user"])
+    claims = verify_oauth2_token(request_data['Authorization'], requests.Request(),
+                                 audience=os.getenv('GOOGLE_CLIENT_ID'))
+    if not claims['email_verified']:
+      raise Exception('User email has not been verified by Google.')
+    __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
+    user = find_user_by_uuid(str(__id__))
+    status, message, session = billing_service.create_checkout_session(data, user)
     if status:
       return redirect(session.url, code=303)
 
