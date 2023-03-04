@@ -2,8 +2,8 @@ import logging
 import os
 import uuid
 
-import requests
 from flask import Blueprint, request, redirect
+from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
 import services
