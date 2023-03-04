@@ -40,4 +40,4 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: ${{ env.REPOSITORY }}:${{ github.ref_name }}
+        tags: ${{ env.REPOSITORY }}:${{ github.ref_name }},${{ env.REPOSITORY }}:latest
