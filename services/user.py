@@ -23,7 +23,8 @@ def build_user_object(user: User):
     'first_name': user.first_name,
     'last_name': user.last_name or None,
     'timezone': user.timezone or None,
-    'sub_expires_at': user.sub_expires_at or None
+    'sub_expires_at': user.sub_expires_at or None,
+    'tier': user.tier or None
   }
 
 
