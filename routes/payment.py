@@ -28,7 +28,8 @@ def create_subscription():
     return message, 400
 
   try:
-    claims = verify_oauth2_token(request_data['Authorization'], requests.Request(),
+    auth = request_data['Authorization'].split(' ')[1]
+    claims = verify_oauth2_token(auth, requests.Request(),
                                  audience=os.getenv('GOOGLE_CLIENT_ID'))
     if not claims['email_verified']:
       raise Exception('User email has not been verified by Google.')
