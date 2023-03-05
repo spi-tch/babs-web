@@ -75,11 +75,17 @@ class BillingService:
       return False, f"Unable to create subscription: {e}", None
 
   @classmethod
-  def create_portal_session(cls, user_id):
+  def create_portal_session(cls, user: User):
     try:
-      customer = StripeCustomer.query.filter_by(user_id=user_id).first()
+      customer: "StripeCustomer" = get_stripe_customer_by_user_id(user_id=user.id)
+      if not customer:
+        customer: "Customer" = stripe.Customer.create(email=user.email)
+        create_stripe_customer(user.id, customer.id)
+        customer_stripe_id = customer.id
+      else:
+        customer_stripe_id = customer.stripe_id
       session = stripe.billing_portal.Session.create(
-        customer=customer.stripe_id,
+        customer=customer_stripe_id,
         return_url=os.getenv("FRONTEND_URL")
       )
       return True, "Success", session
@@ -111,6 +117,7 @@ class BillingService:
         logger.info("Got payment intent info")
       elif event["type"] == CUSTOMER_DELETED:
         handle_customer_deleted(data_object)
+        logger.info("Customer deleted")
     except Exception as e:
       logger.error(f"Error handling Stripe webhook: {e}")
       return False, f"Error handling Stripe webhook: {e}", None

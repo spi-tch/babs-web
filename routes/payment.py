@@ -61,7 +61,7 @@ def create_portal():
       raise Exception('User email has not been verified by Google.')
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
     user = find_user_by_uuid(str(__id__))
-    status, message, session = billing_service.create_portal_session(user.id)
+    status, message, session = billing_service.create_portal_session(user)
     if status:
       return redirect(session.url, code=303)
     message = {'success': False, 'message': message}
