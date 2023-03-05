@@ -7,10 +7,12 @@ GOOGLE_CAL_APP_NAME = "Google Calendar"
 
 PREMIUM_PLAN = "premium"
 BASIC_PLAN = "basic"
+TRIAL_PLAN = "basic_trial"
 
 CUSTOMER_SUBSCRIPTION_CREATED = "customer.subscription.created"
 CUSTOMER_SUBSCRIPTION_UPDATED = "customer.subscription.updated"
 CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted"
+CUSTOMER_DELETED = "customer.deleted"
 
 PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded"
 PAYMENT_INTENT_FAILED = "payment_intent.payment_failed"

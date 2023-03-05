@@ -135,6 +135,18 @@ def get_stripe_customer(stripe_id: str) -> StripeCustomer:
     db.session.close()
 
 
+def delete_stripe_customer(stripe_id: str):
+  try:
+    customer = StripeCustomer.query.filter_by(stripe_id=stripe_id).first()
+    db.session.delete(customer)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+
 def get_stripe_customer_by_user_id(user_id: int) -> StripeCustomer:
   try:
     customer = StripeCustomer.query.filter_by(user_id=user_id).first()

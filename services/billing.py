@@ -7,11 +7,11 @@ from stripe.error import SignatureVerificationError
 
 from constants import (STRIPE_CHECKOUT_MODE, CUSTOMER_SUBSCRIPTION_DELETED,
                        CUSTOMER_SUBSCRIPTION_CREATED, CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN,
-                       PAYMENT_INTENT_SUCCEEDED, PAYMENT_INTENT_FAILED)
+                       PAYMENT_INTENT_SUCCEEDED, PAYMENT_INTENT_FAILED, CUSTOMER_DELETED)
 from data_access import StripeCustomer, User, create_stripe_customer, get_stripe_customer_by_user_id
 from data_access.payment import Payment
 from util.handler import (handle_subscription_created_or_updated, handle_subscription_deleted,
-                          handle_payment_success_or_failure)
+                          handle_payment_success_or_failure, handle_customer_deleted)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID")
@@ -87,7 +87,7 @@ class BillingService:
       return False, f"Unable to create portal session: {e}", None
 
   @classmethod
-  def handle_stripe_webhook(cls, data: bytes, signature: str):
+  def handle_stripe_webhook(cls, data: str, signature: str):
     try:
       event = stripe.Webhook.construct_event(data, signature, os.getenv("STRIPE_WEBHOOK_SECRET"))
     except ValueError as e:
@@ -100,14 +100,20 @@ class BillingService:
     logger.warning(f"Stripe webhook received: {event['type']}")
 
     data_object = event["data"]["object"]
-    if event["type"] == CUSTOMER_SUBSCRIPTION_CREATED or event["type"] == CUSTOMER_SUBSCRIPTION_UPDATED:
-      handle_subscription_created_or_updated(data_object)
-    elif event["type"] == CUSTOMER_SUBSCRIPTION_DELETED:
-      handle_subscription_deleted(data_object)
-      logger.info("Subscription deleted")
-    elif event["type"] == PAYMENT_INTENT_SUCCEEDED or event["type"] == PAYMENT_INTENT_FAILED:
-      handle_payment_success_or_failure(data_object)
-      logger.info("Got payment intent info")
+    try:
+      if event["type"] == CUSTOMER_SUBSCRIPTION_CREATED or event["type"] == CUSTOMER_SUBSCRIPTION_UPDATED:
+        handle_subscription_created_or_updated(data_object)
+      elif event["type"] == CUSTOMER_SUBSCRIPTION_DELETED:
+        handle_subscription_deleted(data_object)
+        logger.info("Subscription deleted")
+      elif event["type"] == PAYMENT_INTENT_SUCCEEDED or event["type"] == PAYMENT_INTENT_FAILED:
+        handle_payment_success_or_failure(data_object)
+        logger.info("Got payment intent info")
+      elif event["type"] == CUSTOMER_DELETED:
+        handle_customer_deleted(data_object)
+    except Exception as e:
+      logger.error(f"Error handling Stripe webhook: {e}")
+      return False, f"Error handling Stripe webhook: {e}", None
 
     return True, "Success", None
 

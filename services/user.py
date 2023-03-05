@@ -6,7 +6,7 @@ import uuid
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
-from constants import FREE_TRIAL_DAYS
+from constants import FREE_TRIAL_DAYS, TRIAL_PLAN
 from data_access import User, find_user_by_uuid, create_user, update_user, create_waitlister
 from exceptns import UserNotFoundException
 
@@ -56,6 +56,7 @@ class UserService:
       last_name=claims.get('family_name', None),
       uuid=__id__,
       email=claims['email'],
+      plan=TRIAL_PLAN,
       sub_expires_at=datetime.datetime.now() + datetime.timedelta(days=FREE_TRIAL_DAYS)
     )
     create_user(new_user)

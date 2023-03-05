@@ -2,11 +2,12 @@ import logging
 import os
 from datetime import datetime
 
+from stripe.api_resources.customer import Customer
 from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
 from constants import PREMIUM_PLAN, BASIC_PLAN
-from data_access import get_stripe_customer, find_user_by_id, update_user
+from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer
 from data_access.payment import get_payment_for_user, create_payment
 from exceptns import UserNotFoundException
 
@@ -58,3 +59,12 @@ def handle_payment_success_or_failure(payment_intent: PaymentIntent):
     create_payment(user.uuid, payment_intent)
   else:
     update_user(user, {"tier": BASIC_PLAN, "sub_expires_at": None})
+
+
+def handle_customer_deleted(customer: Customer):
+  customer = delete_stripe_customer(customer["id"])
+  if customer is not None:
+    if user := find_user_by_id(customer.user_id):
+      update_user(user, {"tier": None, "sub_expires_at": None})
+    pass
+  logger.info("Customer deleted")
