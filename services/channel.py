@@ -3,14 +3,18 @@ import os
 from threading import Thread
 
 from configs import ChannelConf
+from constants import WHATSAPP_CHANNEL, TELEGRAM_CHANNEL, SLACK_CHANNEL
 from data_access import delete_user_events, delete_user_channel, get_user_channels, \
   get_channel, get_verification_request, update_verification_request, create_verification_request, update_channel_config
 from util.app import generate_code
 
 logger = logging.getLogger()
 chat_links = {
-  "whatsapp": f"https://wa.me/{os.getenv('WA_NUM')}?text=",
-  "telegram": f"https://t.me/{os.getenv('TG_NAME')}",
+  WHATSAPP_CHANNEL: f"https://wa.me/{os.getenv('WA_NUM')}?text=",
+  TELEGRAM_CHANNEL: f"https://t.me/{os.getenv('TG_NAME')}",
+  SLACK_CHANNEL: "https://slack.com/oauth/v2/authorize?"
+                 "client_id=4403076405618.4893334568726"
+                 "&scope=channels:read,chat:write,im:history,app_mentions:read"
 }
 
 
@@ -53,7 +57,8 @@ class ChannelService:
       return False, 'No channels found.', None
     return True, 'Channels found.', [{
       'sender_id': channel.sender_id,
-      'channel': channel.name
+      'channel': channel.name,
+      'config': ChannelConf.from_string(channel.config)
     } for channel in channels]
 
   @classmethod

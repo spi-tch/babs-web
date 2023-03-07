@@ -31,6 +31,12 @@ def create_subscription():
     auth = request_data['Authorization'].split(' ')[1]
     claims = verify_oauth2_token(auth, requests.Request(),
                                  audience=os.getenv('GOOGLE_CLIENT_ID'))
+  except Exception as e:
+    logger.error(e)
+    message = {"success": False, "message": "Bad request"}
+    return message, 400
+
+  try:
     if not claims['email_verified']:
       raise Exception('User email has not been verified by Google.')
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
@@ -57,6 +63,12 @@ def create_portal():
     auth = request_data['Authorization'].split(' ')[1]
     claims = verify_oauth2_token(auth, requests.Request(),
                                  audience=os.getenv('GOOGLE_CLIENT_ID'))
+  except Exception as e:
+    logger.error(e)
+    message = {"success": False, "message": "Bad request"}
+    return message, 400
+
+  try:
     if not claims['email_verified']:
       raise Exception('User email has not been verified by Google.')
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])

@@ -25,3 +25,7 @@ BASE_SCOPES = ["openid", "https://www.googleapis.com/auth/userinfo.email",
                "https://www.googleapis.com/auth/userinfo.profile"]
 GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+
+WHATSAPP_CHANNEL = "whatsapp"
+TELEGRAM_CHANNEL = "telegram"
+SLACK_CHANNEL = "slack"
