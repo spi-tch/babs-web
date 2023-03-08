@@ -96,7 +96,7 @@ def auth_callback():
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=scopes, state=state)
-    flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="http")
+    flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="https")
     # todo: fix this url
     authorization_response = request.url
     authorization_response = authorization_response.replace("http://", "https://")
