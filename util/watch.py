@@ -25,11 +25,14 @@ def get_gmail_service(creds: dict):
 
 def watch_gmail(user: dict, creds: dict, email) -> None:
   """Watches the user's gmail inbox for new messages."""
-  service = get_gmail_service(creds)
-  watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
-  watch = service.users().watch(userId=email, body=watch_request_body).execute()
-  create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"], email=email)
-  logger.info(f"Watching gmail for {user['email']}")
+  try:
+    service = get_gmail_service(creds)
+    watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
+    watch = service.users().watch(userId=email, body=watch_request_body).execute()
+    create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"], email=email)
+    logger.info(f"Watching gmail for {user['email']}")
+  except Exception as e:
+    logger.error(f"Unable to watch gmail for {user['email']}", e)
 
 
 def get_calendar_service(creds: dict):
@@ -40,11 +43,14 @@ def get_calendar_service(creds: dict):
 
 def watch_calendar(user: dict, creds: dict, email) -> None:
   """Watches the user's calendar for new events."""
-  service = get_calendar_service(creds)
-  watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
-  service.users().watch(userId=email, body=watch_request_body).execute()
-  create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0, email=email)
-  logger.info(f"Watching calendar for {user['email']}")
+  try:
+    service = get_calendar_service(creds)
+    watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
+    service.users().watch(userId=email, body=watch_request_body).execute()
+    create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0, email=email)
+    logger.info(f"Watching calendar for {user['email']}")
+  except Exception as e:
+    logger.error(f"Unable to watch calendar for {user['email']}", e)
 
 
 def delete_gmail_watch(user_id: str, email) -> None:
