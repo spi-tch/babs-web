@@ -111,6 +111,7 @@ class Watch(db.Model):
   user_id = db.Column(db.String, db.ForeignKey('user.uuid'), nullable=False)
   latest = db.Column(db.String, nullable=False)
   app_name = db.Column(db.String, nullable=False)
+  email = db.Column(db.String, nullable=False)
 
 
 def delete_watch(user_id, app_name):
@@ -129,9 +130,9 @@ def delete_watch(user_id, app_name):
     db.session.close()
 
 
-def create_watch(user_id, app_name, latest):
+def create_watch(user_id, app_name, latest, email):
   try:
-    watch = Watch(user_id=user_id, app_name=app_name, latest=latest)
+    watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email)
     db.session.add(watch)
     db.session.commit()
     return True

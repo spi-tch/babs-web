@@ -20,7 +20,7 @@ class AppService:
       return False, 'User already has this application.', None
     if create_app(app_name, user["uuid"], email):
       if app_name == GOOGLE_MAIL_APP_NAME:
-        watch_gmail(user, creds)
+        watch_gmail(user, creds, email)
       elif app_name == GOOGLE_CAL_APP_NAME:
         # watch_calendar(user["uuid"], creds)
         pass

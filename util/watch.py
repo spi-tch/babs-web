@@ -23,12 +23,12 @@ def get_gmail_service(creds: dict):
   return build("gmail", "v1", credentials=credentials)
 
 
-def watch_gmail(user: dict, creds: dict) -> None:
+def watch_gmail(user: dict, creds: dict, email) -> None:
   """Watches the user's gmail inbox for new messages."""
   service = get_gmail_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
   watch = service.users().watch(userId=user["email"], body=watch_request_body).execute()
-  create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"])
+  create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"], email=email)
   logger.info(f"Watching gmail for {user['email']}")
 
 
@@ -38,12 +38,12 @@ def get_calendar_service(creds: dict):
   return build("calendar", "v3", credentials=credentials)
 
 
-def watch_calendar(user: dict, creds: dict) -> None:
+def watch_calendar(user: dict, creds: dict, email) -> None:
   """Watches the user's calendar for new events."""
   service = get_calendar_service(creds)
   watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
   service.users().watch(userId=user["email"], body=watch_request_body).execute()
-  create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0)
+  create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0, email=email)
   logger.info(f"Watching calendar for {user['email']}")
 
 
