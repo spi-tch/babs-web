@@ -48,7 +48,7 @@ class ChannelService:
     if channel is None:
       return False, 'No channel found.', None
     return True, 'Channel found.', {
-      'sender_id': channel.sender_id,
+      # 'sender_id': channel.sender_id,
       'channel': channel.name,
       'config': ChannelConf.from_string(channel.config)
     }
