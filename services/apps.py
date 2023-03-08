@@ -1,7 +1,8 @@
 import logging
 
+from configs.apps import AppConfig
 from constants import GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME
-from data_access import get_app_by_user, create_app, get_user_app, delete_app, get_app_by_email, User
+from data_access import get_app_by_user, create_app, get_user_app, delete_app, get_app_by_email, User, update_app_config
 from util.watch import watch_gmail, delete_gmail_watch
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,8 @@ class AppService:
     apps = get_user_app(user)
     if apps is None:
       return False, 'No apps found.', None
-    return True, 'Apps found.', [{"app": app.name, "email": app.email} for app in apps]
+    return True, 'Apps found.', [{"app": app.name, "email": app.email,
+                                  "config": AppConfig.from_string(app.name, app.config)} for app in apps]
 
   @classmethod
   def remove_app(cls, user: User, app_name: str, email: str = None) -> [bool, str]:
@@ -55,3 +57,14 @@ class AppService:
     if delete_app(app):
       return True, 'App removed.'
     return False, 'Could not remove app.'
+
+  @classmethod
+  def update_app_conf(cls, user_id: str, app_name: str, config: dict):
+    try:
+      conf = AppConfig(app_name, **config)
+      if not update_app_config(user_id, app_name, f"{conf}"):
+        return False, 'Could not update app config.'
+      return True, 'App config updated.'
+    except Exception as e:
+      logger.error(e)
+      return False, 'Unable to update app config.'

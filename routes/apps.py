@@ -116,6 +116,20 @@ def auth_callback():
     return {"error": "Something Happened", "success": False}, 500
 
 
+@apps.route(f"/{VERSION}/application", methods=["PATCH"])
+def update_app():
+  try:
+    app_name = request.json.get("app")
+    conf = request.json.get("config")
+    status, message = app_service.update_app_conf(request.environ['user'].uuid, app_name, conf)
+    if not status:
+      return {"message": message, "success": False}, 400
+    return {"message": message, "success": True}, 200
+  except Exception as e:
+    logger.error(e)
+    return {"message": "Unable to update application config.", "success": False}, 400
+
+
 def store_apps(app_name, user: dict, creds: dict, email):
   try:
     creds.pop("expiry", None)

@@ -19,7 +19,7 @@ def send_email(email: str):
       auth=("api", MAILGUN_API_KEY),
       data={"from": "Babs <welcome@babs.ai>",
             "to": [email],
-            "subject": "Hello from Babs",
+            "subject": "Welcome to Babs",
             "html": html_text})
 
     # Add user to mailing list

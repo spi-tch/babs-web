@@ -57,7 +57,7 @@ def update_channel():
   try:
     channel_name = request.json.get('channel')
     conf = request.json.get('config')
-    status, message = channel_service.update_channel_config(request.environ['user'].uuid, channel_name, conf)
+    status, message = channel_service.update_channel_conf(request.environ['user'].uuid, channel_name, conf)
     if not status:
       return {'message': message, 'success': False}, 400
     return {'message': message, 'success': True}, 200

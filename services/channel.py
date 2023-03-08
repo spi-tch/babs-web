@@ -4,8 +4,11 @@ from threading import Thread
 
 from configs import ChannelConf
 from constants import WHATSAPP_CHANNEL, TELEGRAM_CHANNEL, SLACK_CHANNEL
-from data_access import delete_user_events, delete_user_channel, get_user_channels, \
-  get_channel, get_verification_request, update_verification_request, create_verification_request, update_channel_config
+from data_access import (
+  delete_user_events, delete_user_channel, get_user_channels,
+  get_channel, get_verification_request, update_verification_request,
+  create_verification_request, update_channel_config
+)
 from util.app import generate_code
 
 logger = logging.getLogger()
@@ -71,7 +74,8 @@ class ChannelService:
   def delete_events(cls, user_id: str):
     delete_user_events(user_id)
 
-  def update_channel_config(self, user_id: str, channel_name: str, config: dict) -> [bool, str]:
+  @classmethod
+  def update_channel_conf(cls, user_id: str, channel_name: str, config: dict) -> [bool, str]:
     # validate channel config
     try:
       conf = ChannelConf(**config)

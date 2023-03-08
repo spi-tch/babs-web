@@ -6,6 +6,7 @@ GOOGLE_MAIL_APP_NAME = "Google Mail"
 GOOGLE_CAL_APP_NAME = "Google Calendar"
 
 PREMIUM_PLAN = "premium"
+FREE_PLAN = "free"
 BASIC_PLAN = "basic"
 TRIAL_PLAN = "basic_trial"
 
@@ -19,7 +20,8 @@ PAYMENT_INTENT_FAILED = "payment_intent.payment_failed"
 
 CONF_TYPE_CHANNEL = "channel"
 CONF_TYPE_APP = "app"
-DEFAULT_CHANNEL_CONFIG = "default"
+
+DEFAULT_CONFIG = "default"
 
 BASE_SCOPES = ["openid", "https://www.googleapis.com/auth/userinfo.email",
                "https://www.googleapis.com/auth/userinfo.profile"]

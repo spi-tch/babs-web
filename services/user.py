@@ -1,14 +1,15 @@
-import datetime
 import logging
 import os
 import uuid
+from threading import Thread
 
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
-from constants import FREE_TRIAL_DAYS, TRIAL_PLAN
+from constants import FREE_PLAN
 from data_access import User, find_user_by_uuid, create_user, update_user, create_waitlister
 from exceptns import UserNotFoundException
+from util.mailgun import send_email
 
 logger = logging.getLogger()
 
@@ -34,7 +35,8 @@ class UserService:
   def find_user(cls, user_id: uuid.UUID):
     return find_user_by_uuid(str(user_id))
 
-  def login_or_register(self, request: dict) -> [bool, str, User]:
+  @classmethod
+  def login_or_register(cls, request: dict) -> [bool, str, User]:
 
     claims = verify_oauth2_token(request['token'], requests.Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
     if not claims['email_verified']:
@@ -56,10 +58,11 @@ class UserService:
       last_name=claims.get('family_name', None),
       uuid=__id__,
       email=claims['email'],
-      plan=TRIAL_PLAN,
-      sub_expires_at=datetime.datetime.now() + datetime.timedelta(days=FREE_TRIAL_DAYS)
+      tier=FREE_PLAN,
+      sub_expires_at=None
     )
     create_user(new_user)
+    Thread(target=send_email, args=[claims["email"]]).start()
 
     user = find_user_by_uuid(str(__id__))
     user = build_user_object(user)
