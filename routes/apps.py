@@ -99,7 +99,7 @@ def auth_callback():
     flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="http")
     # todo: fix this url
     authorization_response = request.url
-    # authorization_response = authorization_response.replace("http://", "https://")
+    authorization_response = authorization_response.replace("http://", "https://")
 
     flow.fetch_token(authorization_response=authorization_response)
 
