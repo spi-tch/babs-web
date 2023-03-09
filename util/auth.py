@@ -51,7 +51,7 @@ def get_creds(args, url=None):
     response = requests.post("https://api.notion.com/v1/oauth/token",
                              json={"code": code,
                                    "grant_type": "authorization_code",
-                                   "redirect_uri": "https://5299-173-239-211-140.ngrok.io/auth_callback"},
+                                   "redirect_uri": f"{os.getenv('BASE_URL')}/auth_callback"},
                              auth=(os.getenv("NOTION_CLIENT_ID"), os.getenv("NOTION_CLIENT_SECRET"))
                              )
     creds = response.json()
