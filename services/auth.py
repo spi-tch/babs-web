@@ -2,12 +2,16 @@ import logging
 
 import requests
 
-from data_access import create_google_cred, get_google_cred, update_google_cred, delete_google_cred
+from data_access import (
+  create_google_cred, get_google_cred, update_google_cred,
+  delete_google_cred, get_notion_cred,
+  update_notion_cred, create_notion_cred
+)
 
 logger = logging.getLogger(__name__)
 
 
-def credentials_to_dict(credentials):
+def google_cred_to_dict(credentials):
   return {'token': credentials.token,
           'refresh_token': credentials.refresh_token,
           'token_uri': credentials.token_uri,
@@ -28,11 +32,22 @@ class AuthService:
     :return: tuple (bool, str)
     """
     if get_google_cred(user_id, email):
-      if update_google_cred(credentials_to_dict(credentials), user_id, email):
+      if update_google_cred(google_cred_to_dict(credentials), user_id, email):
         return True, "Credentials updated successfully"
       return False, "Failed to update credentials"
 
     if create_google_cred(user_id, credentials, email):
+      return True, 'Credentials created successfully'
+    return False, "Unable to create credentials"
+
+  @classmethod
+  def store_notion_creds(cls, user, creds):
+    if get_notion_cred(user):
+      if update_notion_cred(creds, user):
+        return True, "Credentials updated successfully"
+      return False, "Failed to update credentials"
+
+    if create_notion_cred(user, creds):
       return True, 'Credentials created successfully'
     return False, "Unable to create credentials"
 

@@ -6,13 +6,14 @@ from data_access import get_app_by_user, create_app, get_user_app, delete_app, g
 from util.watch import watch_gmail, delete_gmail_watch
 
 logger = logging.getLogger(__name__)
+GOOGLE_APPS = [GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME]
 
 
 class AppService:
   @classmethod
   def add_app(cls, app_name: str, user: dict, creds: dict, email) -> [bool, str, dict]:
 
-    if get_app_by_email(app_name, email) is not None:
+    if app_name in GOOGLE_APPS and get_app_by_email(app_name, email) is not None:
       return False, 'Email is already in use.', None
 
     app = get_app_by_user(user["uuid"], app_name, email)

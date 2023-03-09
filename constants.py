@@ -4,6 +4,7 @@ STRIPE_CHECKOUT_MODE = "subscription"
 
 GOOGLE_MAIL_APP_NAME = "Google Mail"
 GOOGLE_CAL_APP_NAME = "Google Calendar"
+NOTION_APP_NAME = "Notion"
 
 PREMIUM_PLAN = "premium"
 FREE_PLAN = "free"

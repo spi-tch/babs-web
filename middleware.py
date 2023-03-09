@@ -15,7 +15,8 @@ SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
                        f'/{VERSION}/admin/find_user',
                        f'/{VERSION}/wait', '/',
                        f'/logo', f'/logowtext',
-                       '/auth_callback', '/webhooks/stripe', '/v0/subscription', '/v0/billing_portal']
+                       '/auth_callback', '/webhooks/stripe', '/v0/subscription', '/v0/billing_portal',
+                       '/v0/application']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
@@ -27,6 +28,9 @@ class Middleware:
 
   def __call__(self, environ, start_response):
     request = Request(environ)
+    if request.path == '/v0/application' and request.method == 'GET':
+      return self.app(environ, start_response)
+
     if request.path in SECURITY_EXCLUSIONS or request.method == "OPTIONS":
       return self.app(environ, start_response)
 

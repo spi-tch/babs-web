@@ -1,15 +1,17 @@
 import json
 import logging
 import os
+import uuid
 
-import flask
-import google_auth_oauthlib.flow
 from flask import Blueprint, request, redirect
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
 import services
-from constants import GOOGLE_CAL_APP_NAME, GOOGLE_MAIL_APP_NAME, GMAIL_SCOPES, CALENDAR_SCOPES, BASE_SCOPES
+from constants import GOOGLE_CAL_APP_NAME, GOOGLE_MAIL_APP_NAME, NOTION_APP_NAME
+from data_access import find_user_by_uuid
+from schema import validate_request, AddApplicationSchema
+from util.auth import get_auth_url, get_creds
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "True"
@@ -25,28 +27,34 @@ user_service = services.UserService()
 
 @apps.route(f'/{VERSION}/application', methods=['POST'])
 def add_app():
-  app_name = request.json.get("app", None)
-  if not app_name:
-    return {'message': 'App name is required', 'success': False}, 400
+  request_data = request.form
+  valid, data = validate_request(request_data, AddApplicationSchema())
+  if not valid:
+    message = {'errors': data, 'success': False}
+    return message, 400
 
-  if app_name == GOOGLE_MAIL_APP_NAME:
-    scopes = GMAIL_SCOPES + BASE_SCOPES
-  elif app_name == GOOGLE_CAL_APP_NAME:
-    scopes = CALENDAR_SCOPES + BASE_SCOPES
-  else:
-    return {'message': 'App name is invalid', 'success': False}, 400
+  try:
+    auth = request_data['Authorization'].split(' ')[1]
+    claims = verify_oauth2_token(auth, requests.Request(),
+                                 audience=os.getenv('GOOGLE_CLIENT_ID'))
+  except Exception as e:
+    logger.error(e)
+    message = {"success": False, "message": f"Bad request. {e}"}
+    return message, 400
 
-  state = f"{request.environ['user'].uuid}/{app_name}"
-  flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-    CLIENT_SECRETS_FILE, scopes=scopes)
-  flow.redirect_uri = flask.url_for("apps.auth_callback", _external=True, _scheme="https")
-  authorization_url, state = flow.authorization_url(
-    access_type="offline",
-    include_granted_scopes="true",
-    # login_hint=request.environ["user"].email,
-    prompt="consent", state=state)
+  try:
+    if not claims['email_verified']:
+      raise Exception('User email has not been verified by Google.')
+    __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
+    user = find_user_by_uuid(str(__id__))
 
-  return {"redirect_url": authorization_url}, 200
+    if redirect_url := get_auth_url(data["app"], user):
+      return redirect(redirect_url, code=303)
+    return {'message': 'Invalid request. Could not add application.', 'success': False}, 400
+  except Exception as e:
+    logger.error(e)
+    message = {'success': False, 'message': 'Unable to add application.'}
+    return message, 500
 
 
 # Get all apps for user
@@ -87,29 +95,22 @@ def delete_app():
 @apps.route("/auth_callback")
 def auth_callback():
   try:
-    args = request.args
-    state = args["state"]
-    user = state.split("/")[0]
-    app_name = state.split("/")[1]
+    creds, user, app_name, claims = get_creds(request.args, request.url)
+    if app_name == GOOGLE_MAIL_APP_NAME or app_name == GOOGLE_CAL_APP_NAME:
+      auth_service.store_google_creds(user, creds, claims["email"])
+      store_apps(app_name, {
+        "uuid": user,
+        "email": claims["email"]
+      }, creds=json.loads(creds.to_json()), email=claims["email"])
+    elif app_name == NOTION_APP_NAME:
+      auth_service.store_notion_creds(user, creds)
+      store_apps(app_name, {
+        "uuid": user,
+        "email": ""
+      }, creds=creds, email="")
+    else:
+      return {"error": "Invalid Application", "success": False}, 400
 
-    scopes = args["scope"].split(" ")
-
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-      CLIENT_SECRETS_FILE, scopes=scopes, state=state)
-    flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="https")
-    # todo: fix this url
-    authorization_response = request.url
-    authorization_response = authorization_response.replace("http://", "https://")
-
-    flow.fetch_token(authorization_response=authorization_response)
-
-    credentials = flow.credentials
-    claims = verify_oauth2_token(credentials.id_token, requests.Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
-    auth_service.store_google_creds(user, credentials, claims["email"])
-    store_apps(app_name, {
-      "uuid": user,
-      "email": claims["email"]
-    }, creds=json.loads(credentials.to_json()), email=claims["email"])
     return redirect(f"{os.getenv('FRONTEND_URL')}/app/integrations", 302)
   except Exception as e:
     logger.error(e)
