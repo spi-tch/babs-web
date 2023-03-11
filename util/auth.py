@@ -4,6 +4,7 @@ import os
 import flask
 import google_auth_oauthlib.flow
 import requests
+from google.auth.transport.requests import Request
 from google.oauth2.id_token import verify_oauth2_token
 
 from constants import (
@@ -29,7 +30,7 @@ def get_auth_url(app, user):
     state = f"{user.uuid}/{app}"
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=scopes)
-    flow.redirect_uri = flask.url_for("apps.auth_callback", _external=True, _scheme="https")
+    flow.redirect_uri = flask.url_for("apps.auth_callback", _external=True, _scheme="http")
     authorization_url, state = flow.authorization_url(
       access_type="offline",
       include_granted_scopes="true",
@@ -60,12 +61,12 @@ def get_creds(args, url=None):
     scopes = args["scope"].split(" ")
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=scopes, state=state)
-    flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="https")
+    flow.redirect_uri = flask.url_for('apps.auth_callback', _external=True, _scheme="http")
     authorization_response = url
-    authorization_response = authorization_response.replace("http://", "https://")
+    # authorization_response = authorization_response.replace("http://", "https://")
 
     flow.fetch_token(authorization_response=authorization_response)
 
     credentials = flow.credentials
-    claims = verify_oauth2_token(credentials.id_token, requests.Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
+    claims = verify_oauth2_token(credentials.id_token, Request(), audience=os.getenv('GOOGLE_CLIENT_ID'))
     return credentials, user, app_name, claims

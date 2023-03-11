@@ -6,7 +6,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from constants import GOOGLE_CAL_APP_NAME, GOOGLE_MAIL_APP_NAME
-from data_access import delete_watch, get_google_cred, create_watch
+from data_access import delete_watch, get_google_cred, create_or_update_watch
 from services import UserService, build_user_object, google_cred_to_dict
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def watch_gmail(user: dict, creds: dict, email) -> None:
     service = get_gmail_service(creds)
     watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("GMAIL_TOPIC")}
     watch = service.users().watch(userId=email, body=watch_request_body).execute()
-    create_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"], email=email)
+    create_or_update_watch(user_id=user["uuid"], app_name=GOOGLE_MAIL_APP_NAME, latest=watch["historyId"], email=email)
     logger.info(f"Watching gmail for {user['email']}")
   except Exception as e:
     logger.error(f"Unable to watch gmail for {user['email']}", e)
@@ -47,7 +47,7 @@ def watch_calendar(user: dict, creds: dict, email) -> None:
     service = get_calendar_service(creds)
     watch_request_body = {"labelIds": ["INBOX"], "topicName": os.getenv("CALENDAR_TOPIC")}
     service.users().watch(userId=email, body=watch_request_body).execute()
-    create_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0, email=email)
+    create_or_update_watch(user_id=user["id"], app_name=GOOGLE_CAL_APP_NAME, latest=0, email=email)
     logger.info(f"Watching calendar for {user['email']}")
   except Exception as e:
     logger.error(f"Unable to watch calendar for {user['email']}", e)

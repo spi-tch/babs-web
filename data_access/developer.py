@@ -130,15 +130,19 @@ def delete_watch(user_id, app_name):
     db.session.close()
 
 
-def create_watch(user_id, app_name, latest, email):
+def create_or_update_watch(user_id, app_name, latest, email):
   try:
-    watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email)
-    db.session.add(watch)
+    watch = Watch.query.filter_by(user_id=user_id, email=email, app_name=app_name).first()
+    if watch:
+      watch.latest = latest
+    else:
+      watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email)
+      db.session.add(watch)
     db.session.commit()
     return True
   except Exception as e:
     db.session.rollback()
-    logger.error('Could not crate watch', e)
+    logger.error('Could not create or update watch.', e)
     return False
   finally:
     db.session.close()
