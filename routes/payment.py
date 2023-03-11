@@ -10,7 +10,6 @@ import services
 from data_access import find_user_by_uuid
 from schema import CreateSubscriptionSchema, validate_request
 
-VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
 subscription = Blueprint('subscription', __name__)
 
 logger = logging.getLogger(__name__)
@@ -56,7 +55,7 @@ def create_subscription():
     return message, 500
 
 
-@subscription.route(f'/{VERSION}/billing_portal', methods=['POST'])
+@subscription.route(f'/billing_portal', methods=['POST'])
 def create_portal():
   try:
     request_data = request.form
@@ -100,7 +99,7 @@ def stripe_webhook():
     return {'success': False, 'message': 'Unable to handle webhook'}, 400
 
 
-@subscription.route(f'/{VERSION}/payment', methods=['GET'])
+@subscription.route(f'/payment', methods=['GET'])
 def get_payment_status():
   """Get payment status"""
   try:

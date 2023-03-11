@@ -10,7 +10,6 @@ from werkzeug import Request, Response
 import services
 from exceptns import UserNotFoundException
 
-VERSION = os.getenv("BABS_APP_VERSION")
 SECURITY_EXCLUSIONS = ['/user/login', '/admin/find_user', '/wait', '/', '/logo', '/logowtext',
                        '/auth_callback', '/webhooks/stripe', '/subscription', '/billing_portal']
 

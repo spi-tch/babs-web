@@ -7,8 +7,6 @@ import services
 
 channel = Blueprint('channel', __name__)
 
-VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
-
 logger = logging.getLogger(__name__)
 channel_service = services.ChannelService()
 

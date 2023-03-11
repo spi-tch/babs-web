@@ -13,7 +13,6 @@ from data_access import find_user_by_uuid
 from schema import validate_request, AddApplicationSchema
 from util.auth import get_auth_url, get_creds
 
-VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "True"
 CLIENT_SECRETS_FILE = "client_config.json" if os.getenv("FLASK_CONFIG") == "production" else "client_secret.json"
 apps = Blueprint("apps", __name__)
