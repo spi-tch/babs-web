@@ -26,5 +26,11 @@ class ChannelConf(BabsConf):
     if not string:
       string = DEFAULT_CONFIG
     if string == DEFAULT_CONFIG:
-      return cls(notification=True, quiet=False, on_pause=False, quiet_schedule={})
+      return cls(notification=True, quiet=False, on_pause=False, quiet_schedule={
+        "days": [],
+        "time": {
+          "start": "00:00",
+          "end": "00:00"
+        }}
+      )
     return cls(**json.loads(string))
