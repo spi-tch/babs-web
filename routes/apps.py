@@ -25,7 +25,7 @@ auth_service = services.AuthService()
 user_service = services.UserService()
 
 
-@apps.route(f'/{VERSION}/application', methods=['POST'])
+@apps.route(f'/application', methods=['POST'])
 def add_app():
   request_data = request.form
   valid, data = validate_request(request_data, AddApplicationSchema())
@@ -58,7 +58,7 @@ def add_app():
 
 
 # Get all apps for user
-@apps.route(f'/{VERSION}/application', methods=['GET'])
+@apps.route(f'/application', methods=['GET'])
 def get_apps():
   try:
     status, message, data = app_service.get_apps(request.environ['user'].uuid)
@@ -73,7 +73,7 @@ def get_apps():
     return response, 500
 
 
-@apps.route(f'/{VERSION}/application', methods=['DELETE'])
+@apps.route(f'/application', methods=['DELETE'])
 def delete_app():
   try:
     application = request.json['application']
@@ -92,7 +92,7 @@ def delete_app():
     return {'message': 'Unable to delete application', 'success': False}, 500
 
 
-@apps.route("/auth_callback")
+@apps.route("/auth")
 def auth_callback():
   try:
     creds, user, app_name, claims = get_creds(request.args, request.url)
@@ -117,7 +117,7 @@ def auth_callback():
     return {"error": "Something Happened", "success": False}, 500
 
 
-@apps.route(f"/{VERSION}/application", methods=["PATCH"])
+@apps.route(f"/application", methods=["PATCH"])
 def update_app():
   try:
     app_name = request.json.get("app")

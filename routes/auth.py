@@ -3,7 +3,7 @@ import os
 
 import flask
 import google_auth_oauthlib.flow
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request
 
 import services
 
@@ -23,7 +23,7 @@ SCOPES = ["https://www.googleapis.com/auth/calendar",
 APP_REDIRECT = ""
 
 
-@auth.route(f"/{VERSION}/auth", methods=["GET"])
+@auth.route(f"/auth", methods=["GET"])
 def authorize():
   try:
     data = request.json

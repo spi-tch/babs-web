@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 channel_service = services.ChannelService()
 
 
-@channel.route(f'/{VERSION}/channel/<channel>', methods=['POST'])
+@channel.route(f'/channel/<channel>', methods=['POST'])
 def add_channel(channel):
   channel_name = request.view_args["channel"]
 
@@ -34,7 +34,7 @@ def add_channel(channel):
 
 
 # Get all channels for user
-@channel.route(f'/{VERSION}/channel', methods=['GET'])
+@channel.route(f'/channel', methods=['GET'])
 def get_channel_and_channel_details():
   try:
     if name := request.args.get('channel'):
@@ -52,7 +52,7 @@ def get_channel_and_channel_details():
     return response, 500
 
 
-@channel.route(f'/{VERSION}/channel', methods=['POST'])
+@channel.route(f'/channel', methods=['POST'])
 def update_channel():
   try:
     channel_name = request.json.get('channel')
@@ -66,7 +66,7 @@ def update_channel():
     return {'message': 'Unable to update channel', 'success': False}, 500
 
 
-@channel.route(f'/{VERSION}/channel', methods=['DELETE'])
+@channel.route(f'/channel', methods=['DELETE'])
 def delete_channel():
   try:
     sender_id = request.args.get('sender_id')

@@ -9,13 +9,10 @@ from werkzeug import Request, Response
 
 import services
 from exceptns import UserNotFoundException
-from routes.user import VERSION
 
-SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
-                       f'/{VERSION}/admin/find_user',
-                       f'/{VERSION}/wait', '/',
-                       f'/logo', f'/logowtext',
-                       '/auth_callback', '/webhooks/stripe', '/v0/subscription', '/v0/billing_portal']
+VERSION = os.getenv("BABS_APP_VERSION")
+SECURITY_EXCLUSIONS = ['/user/login', '/admin/find_user', '/wait', '/', '/logo', '/logowtext',
+                       '/auth_callback', '/webhooks/stripe', '/subscription', '/billing_portal']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
@@ -31,7 +28,7 @@ class Middleware:
     if request.path in SECURITY_EXCLUSIONS or request.method == "OPTIONS":
       return self.app(environ, start_response)
 
-    if request.path == '/v0/application' and request.method == 'POST':
+    if request.path == '/application' and request.method == 'POST':
       return self.app(environ, start_response)
 
     auth = request.headers.get("Authorization")

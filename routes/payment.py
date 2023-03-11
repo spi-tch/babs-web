@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 billing_service = services.BillingService()
 
 
-@subscription.route(f'/{VERSION}/subscription', methods=['POST'])
+@subscription.route(f'/subscription', methods=['POST'])
 def create_subscription():
   """Create a new subscription, use Stripe"""
   request_data = request.form
