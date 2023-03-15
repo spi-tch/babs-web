@@ -29,7 +29,7 @@ class ChannelService:
     verification_link = f"{chat_links[channel]}{verification_code if channel == 'whatsapp' else ''}"
     verification_request = get_verification_request(user)
     if verification_request:
-      updated = update_verification_request(verification_request.user_id, verification_code)
+      updated = update_verification_request(verification_request.user_id, verification_code, channel=channel)
       if updated:
         return True, 'Verification request created.', {
           'verification_code': verification_code,

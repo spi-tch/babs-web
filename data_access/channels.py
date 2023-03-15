@@ -93,11 +93,11 @@ def get_verification_request(user_id):
     db.session.close()
 
 
-def update_verification_request(user_id: str, verification_code: int):
+def update_verification_request(user_id: str, verification_code: int, channel: str):
   try:
     statement = (update(VerificationRequest)
                  .where(VerificationRequest.user_id == user_id)
-                 .values({"verification_code": verification_code})
+                 .values({"verification_code": verification_code, "channel": channel})
                  .execution_options(synchronize_session=False))
     db.session.execute(statement=statement)
     db.session.commit()
