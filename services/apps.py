@@ -62,7 +62,7 @@ class AppService:
   @classmethod
   def update_app_conf(cls, user_id: str, app_name: str, config: dict):
     try:
-      conf = AppConfig(app_name, **config)
+      conf = AppConfig(**config)
       if not update_app_config(user_id, app_name, f"{conf}"):
         return False, 'Could not update app config.'
       return True, 'App config updated.'
