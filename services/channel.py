@@ -12,13 +12,15 @@ from data_access import (
 from util.app import generate_code
 
 logger = logging.getLogger()
+text_allowed = [WHATSAPP_CHANNEL, iMESSAGE_CHANNEL]
+
 chat_links = {
   WHATSAPP_CHANNEL: f"https://wa.me/{os.getenv('WA_NUM')}?text=",
   TELEGRAM_CHANNEL: f"https://t.me/{os.getenv('TG_NAME')}",
   SLACK_CHANNEL: "https://slack.com/oauth/v2/authorize?"
                  "client_id=4403076405618.4893334568726"
                  "&scope=channels:read,chat:write,im:history,app_mentions:read",
-  iMESSAGE_CHANNEL: f"https://bcrw.apple.com/urn:biz:{os.getenv('APPLE_BUSINESS_ID')}"
+  iMESSAGE_CHANNEL: f"https://bcrw.apple.com/urn:biz:{os.getenv('APPLE_BUSINESS_ID')}?body="
 }
 
 
@@ -27,7 +29,7 @@ class ChannelService:
   @classmethod
   def create_channel(cls, channel: str, user: str) -> [bool, str, dict]:
     verification_code = int(generate_code())
-    verification_link = f"{chat_links[channel]}{verification_code if channel == 'whatsapp' else ''}"
+    verification_link = f"{chat_links[channel]}{verification_code if channel in text_allowed else ''}"
     verification_request = get_verification_request(user)
     if verification_request:
       updated = update_verification_request(verification_request.user_id, verification_code, channel=channel)
