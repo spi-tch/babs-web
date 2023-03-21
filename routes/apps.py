@@ -97,19 +97,20 @@ def auth_callback():
     creds, user, app_name, claims = get_creds(request.args, request.url)
     if app_name == GOOGLE_MAIL_APP_NAME or app_name == GOOGLE_CAL_APP_NAME:
       auth_service.store_google_creds(user, creds, claims["email"])
-      store_apps(app_name, {
+      message = store_apps(app_name, {
         "uuid": user,
         "email": claims["email"]
       }, creds=json.loads(creds.to_json()), email=claims["email"])
     elif app_name == NOTION_APP_NAME:
       auth_service.store_notion_creds(user, creds)
-      store_apps(app_name, {
+      message = store_apps(app_name, {
         "uuid": user,
         "email": ""
       }, creds=creds, email="")
     else:
       return {"error": "Invalid Application", "success": False}, 400
-
+    if message:
+      return redirect(f"{os.getenv('FRONTEND_URL')}/app/integrations?error={message}", 302)
     return redirect(f"{os.getenv('FRONTEND_URL')}/app/integrations", 302)
   except Exception as e:
     logger.error(e)
@@ -131,9 +132,13 @@ def update_app():
 
 
 def store_apps(app_name, user: dict, creds: dict, email):
+  response_message = ""
   try:
     creds.pop("expiry", None)
-    _, message, data = app_service.add_app(app_name, user, creds, email)
+    status, message, data = app_service.add_app(app_name, user, creds, email)
+    if not status:
+      response_message = message
   except Exception as e:
     logger.error(e)
-    raise
+    response_message = "Unable to add application."
+  return response_message

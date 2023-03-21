@@ -32,3 +32,4 @@ CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 WHATSAPP_CHANNEL = "whatsapp"
 TELEGRAM_CHANNEL = "telegram"
 SLACK_CHANNEL = "slack"
+iMESSAGE_CHANNEL = "iMessage"

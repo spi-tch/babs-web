@@ -3,7 +3,7 @@ import os
 from threading import Thread
 
 from configs import ChannelConf
-from constants import WHATSAPP_CHANNEL, TELEGRAM_CHANNEL, SLACK_CHANNEL
+from constants import WHATSAPP_CHANNEL, TELEGRAM_CHANNEL, SLACK_CHANNEL, iMESSAGE_CHANNEL
 from data_access import (
   delete_user_events, delete_user_channel, get_user_channels,
   get_channel, get_verification_request, update_verification_request,
@@ -17,7 +17,8 @@ chat_links = {
   TELEGRAM_CHANNEL: f"https://t.me/{os.getenv('TG_NAME')}",
   SLACK_CHANNEL: "https://slack.com/oauth/v2/authorize?"
                  "client_id=4403076405618.4893334568726"
-                 "&scope=channels:read,chat:write,im:history,app_mentions:read"
+                 "&scope=channels:read,chat:write,im:history,app_mentions:read",
+  iMESSAGE_CHANNEL: f"https://bcrw.apple.com/urn:biz:{os.getenv('APPLE_BUSINESS_ID')}"
 }
 
 

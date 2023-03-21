@@ -61,7 +61,6 @@ def delete_gmail_watch(user_id: str, email) -> None:
     service.users().stop(userId=email).execute()
   except Exception as e:
     logger.error(f"Unable to delete gmail watch for {email}", e)
-    raise e
   delete_watch(user_id=user_id, app_name=GOOGLE_MAIL_APP_NAME)
   logger.info(f"Deleted gmail watch for {email}")
 

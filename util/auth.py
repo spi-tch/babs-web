@@ -52,7 +52,9 @@ def get_creds(args, url=None):
     response = requests.post("https://api.notion.com/v1/oauth/token",
                              json={"code": code,
                                    "grant_type": "authorization_code",
-                                   "redirect_uri": f"{os.getenv('BASE_URL')}/auth_callback"},
+                                   "redirect_uri": flask.url_for("apps.auth_callback",
+                                                                 _external=True,
+                                                                 _scheme="https")},
                              auth=(os.getenv("NOTION_CLIENT_ID"), os.getenv("NOTION_CLIENT_SECRET"))
                              )
     creds = response.json()
