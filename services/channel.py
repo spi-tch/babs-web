@@ -17,7 +17,7 @@ text_allowed = [WHATSAPP_CHANNEL, iMESSAGE_CHANNEL]
 chat_links = {
   WHATSAPP_CHANNEL: f"https://wa.me/{os.getenv('WA_NUM')}?text=",
   TELEGRAM_CHANNEL: f"https://t.me/{os.getenv('TG_NAME')}",
-  SLACK_CHANNEL: f"{os.getenv('SLACK_URL')}channels:read,chat:write,im:history,app_mentions:read",
+  SLACK_CHANNEL: f"{os.getenv('SLACK_URL')}",
   iMESSAGE_CHANNEL: f"https://bcrw.apple.com/urn:biz:{os.getenv('APPLE_BUSINESS_ID')}?body="
 }
 
