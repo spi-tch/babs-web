@@ -1,6 +1,8 @@
 import enum
 import logging
 
+from sqlalchemy import update
+
 from util.app import db
 
 logger = logging.getLogger(__name__)
@@ -143,6 +145,23 @@ def create_or_update_watch(user_id, app_name, latest, email):
   except Exception as e:
     db.session.rollback()
     logger.error('Could not create or update watch.', e)
+    return False
+  finally:
+    db.session.close()
+
+
+def add_email_to_watch(user_id, email):
+  try:
+    statement = (update(Watch)
+                 .where(Watch.user_id == user_id)
+                 .values(email=email)
+                 .execution_options(synchronize_session=False))
+    db.session.execute(statement=statement)
+    db.session.commit()
+    return True
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
     return False
   finally:
     db.session.close()
