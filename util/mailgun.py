@@ -23,11 +23,11 @@ def send_email(email: str):
             "html": html_text})
 
     # Add user to mailing list
-    requests.post(
-        "https://api.mailgun.net/v3/lists/welcome@babs.ai/members",
-        auth=("api", MAILGUN_API_KEY),
-        data={"subscribed": True,
-              "address": [email]})
+    # requests.post(
+    #     "https://api.mailgun.net/v3/lists/welcome@babs.ai/members",
+    #     auth=("api", MAILGUN_API_KEY),
+    #     data={"subscribed": True,
+    #           "address": [email]})
   except Exception as e:
     logger.error("Unable to send email.", e)
 

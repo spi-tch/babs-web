@@ -10,6 +10,7 @@ from data_access import (
   create_verification_request, update_channel_config
 )
 from util.app import generate_code
+from util.auth import state_store, authorize_url_generator
 
 logger = logging.getLogger()
 text_allowed = [WHATSAPP_CHANNEL, iMESSAGE_CHANNEL]
@@ -17,7 +18,6 @@ text_allowed = [WHATSAPP_CHANNEL, iMESSAGE_CHANNEL]
 chat_links = {
   WHATSAPP_CHANNEL: f"https://wa.me/{os.getenv('WA_NUM')}?text=",
   TELEGRAM_CHANNEL: f"https://t.me/{os.getenv('TG_NAME')}",
-  SLACK_CHANNEL: f"{os.getenv('SLACK_URL')}",
   iMESSAGE_CHANNEL: f"https://bcrw.apple.com/urn:biz:{os.getenv('APPLE_BUSINESS_ID')}?body="
 }
 
@@ -27,7 +27,11 @@ class ChannelService:
   @classmethod
   def create_channel(cls, channel: str, user: str) -> [bool, str, dict]:
     verification_code = int(generate_code())
-    verification_link = f"{chat_links[channel]}{verification_code if channel in text_allowed else ''}"
+    if channel == SLACK_CHANNEL:
+      state = state_store.issue()
+      verification_link = authorize_url_generator.generate(state)
+    else:
+      verification_link = f"{chat_links[channel]}{verification_code if channel in text_allowed else ''}"
     verification_request = get_verification_request(user)
     if verification_request:
       updated = update_verification_request(verification_request.user_id, verification_code, channel=channel)

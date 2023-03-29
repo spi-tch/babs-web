@@ -6,6 +6,9 @@ import google_auth_oauthlib.flow
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2.id_token import verify_oauth2_token
+import sqlalchemy as db
+from slack_sdk.oauth import AuthorizeUrlGenerator
+from slack_sdk.oauth.state_store.sqlalchemy import SQLAlchemyOAuthStateStore
 
 from constants import (
   NOTION_APP_NAME, GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME, GMAIL_SCOPES, CALENDAR_SCOPES,
@@ -14,6 +17,23 @@ from constants import (
 
 CLIENT_SECRETS_FILE = "client_config.json" if os.getenv("FLASK_CONFIG") == "production" else "client_secret.json"
 logger = logging.getLogger(__name__)
+
+BABS_DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}" \
+              f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+
+engine = db.create_engine(BABS_DB_URL,
+                          pool_size=3,
+                          pool_pre_ping=True,
+                          pool_recycle=1000,
+                          max_overflow=0)
+metadata = db.MetaData()
+state_store = SQLAlchemyOAuthStateStore(expiration_seconds=80, engine=engine)
+state_store.metadata = metadata
+state_store.metadata.create_all(state_store.engine, tables=[state_store.oauth_states])
+authorize_url_generator = AuthorizeUrlGenerator(
+    client_id=os.getenv("SLACK_CLIENT_ID"),
+    scopes=["channels:read", "groups:read", "chat:write", "app_mentions:read", "im:history", "users:read"],
+)
 
 
 def get_auth_url(app, user):
