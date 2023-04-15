@@ -24,4 +24,5 @@ class QuoteConf(BabsConf):
     def from_string(cls, string=None):
         if not string or string == DEFAULT_CONFIG:
             return cls(daily_message=False, hour=0, minute=0, category=None)
-        return cls(**json.loads(string))
+        _dict = json.loads(string)
+        return cls(**_dict)

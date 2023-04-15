@@ -48,7 +48,6 @@ class Quotes(db.Model):
   created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
   updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
                          onupdate=db.func.current_timestamp())
-  job_id = db.Column(db.String, nullable=True)
 
 
 class WaitList(db.Model):
@@ -197,11 +196,10 @@ def get_all_users():
       db.session.close()
 
 
-def add_quote(user_id, conf, job_id):
+def add_quote(user_id, conf):
   quote = Quotes(
     user_id=user_id,
     conf=conf,
-    job_id=job_id
   )
   try:
     db.session.add(quote)
@@ -225,10 +223,9 @@ def get_quote(user_id):
     db.session.close()
 
 
-def update_quote(user_id, conf, job_id):
+def update_quote(user_id, conf):
   try:
     quote = Quotes.query.filter_by(user_id=user_id).first()
-    quote.job_id = job_id
     quote.conf = conf
     db.session.commit()
     return True
