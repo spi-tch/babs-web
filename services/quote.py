@@ -45,7 +45,8 @@ class QuoteService:
                                         "hour": conf["hour"],
                                         "minute": conf["minute"],
                                         "timezone": user.timezone or "Africa/Lagos",
-                                        "uuid": user.uuid
+                                        "uuid": user.uuid,
+                                        "job_id": job_id
                                         })
         if response.status_code != 200:
           logger.error(response)
