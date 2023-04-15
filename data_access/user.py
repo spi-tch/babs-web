@@ -40,6 +40,17 @@ class StripeCustomer(db.Model):
                          onupdate=db.func.current_timestamp())
 
 
+class Quotes(db.Model):
+  __tablename__ = 'quotes'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+  conf = db.Column(db.String, nullable=False)
+  created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+  updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
+                         onupdate=db.func.current_timestamp())
+  job_id = db.Column(db.String, nullable=True)
+
+
 class WaitList(db.Model):
   __tablename__ = 'wait_list'
   id = db.Column(db.Integer, primary_key=True)
@@ -184,3 +195,46 @@ def get_all_users():
     return False
   finally:
       db.session.close()
+
+
+def add_quote(user_id, conf, job_id):
+  quote = Quotes(
+    user_id=user_id,
+    conf=conf,
+    job_id=job_id
+  )
+  try:
+    db.session.add(quote)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+
+def get_quote(user_id):
+  try:
+    quote = Quotes.query.filter_by(user_id=user_id).first()
+    return quote
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
+
+
+def update_quote(user_id, conf, job_id):
+  try:
+    quote = Quotes.query.filter_by(user_id=user_id).first()
+    quote.job_id = job_id
+    quote.conf = conf
+    db.session.commit()
+    return True
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
