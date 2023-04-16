@@ -57,6 +57,9 @@ def register_blueprint(app):
 # Files
   app.register_blueprint(routes.file.file)
 
+# Quotes
+  app.register_blueprint(routes.quote.quote)
+
 
 def configure_db(app: Flask):
   global db

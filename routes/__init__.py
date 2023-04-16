@@ -5,3 +5,4 @@ from . import file
 from . import channel
 from . import apps
 from . import payment
+from . import quote
