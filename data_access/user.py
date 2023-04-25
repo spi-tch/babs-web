@@ -40,6 +40,15 @@ class StripeCustomer(db.Model):
                          onupdate=db.func.current_timestamp())
 
 
+class PaystackCustomer(db.Model):
+  __tablename__ = 'paystack_customer'
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+  paystack_id = db.Column(db.String, nullable=False, unique=True, index=True)
+  created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+  updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
+                         onupdate=db.func.current_timestamp())
+
 class Quotes(db.Model):
   __tablename__ = 'quotes'
   id = db.Column(db.Integer, primary_key=True)
@@ -233,5 +242,53 @@ def update_quote(user_id, conf):
     logger.error(e)
     db.session.rollback()
     return False
+  finally:
+    db.session.close()
+
+
+def create_paystack_customer(user_id, customer_id):
+  customer: PaystackCustomer = PaystackCustomer(
+    user_id=user_id,
+    paystack_id=customer_id
+  )
+  try:
+    db.session.add(customer)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+def get_paystack_customer(paystack_id: str) -> PaystackCustomer:
+  try:
+    customer = PaystackCustomer.query.filter_by(paystack_id=paystack_id).first()
+    return customer
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    raise UserNotFoundException(f"User not found for paystack customer - {paystack_id}")
+  finally:
+    db.session.close()
+
+def get_paystack_customer_by_user_id(user_id: int) -> StripeCustomer:
+  try:
+    customer = PaystackCustomer.query.filter_by(user_id=user_id).first()
+    return customer
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    raise UserNotFoundException(f"User not found for paystack customer - {user_id}")
+  finally:
+    db.session.close()
+
+def delete_paystack_customer(paystack_id: str):
+  try:
+    customer = StripeCustomer.query.filter_by(paystack_id=paystack_id).first()
+    db.session.delete(customer)
+    db.session.commit()
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
   finally:
     db.session.close()

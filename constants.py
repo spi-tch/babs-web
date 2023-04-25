@@ -11,13 +11,13 @@ FREE_PLAN = "free"
 BASIC_PLAN = "basic"
 TRIAL_PLAN = "basic_trial"
 
-CUSTOMER_SUBSCRIPTION_CREATED = "customer.subscription.created"
-CUSTOMER_SUBSCRIPTION_UPDATED = "customer.subscription.updated"
-CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted"
-CUSTOMER_DELETED = "customer.deleted"
+STRIPE_CUSTOMER_SUBSCRIPTION_CREATED = "customer.subscription.created"
+STRIPE_CUSTOMER_SUBSCRIPTION_UPDATED = "customer.subscription.updated"
+STRIPE_CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted"
+STRIPE_CUSTOMER_DELETED = "customer.deleted"
 
-PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded"
-PAYMENT_INTENT_FAILED = "payment_intent.payment_failed"
+STRIPE_PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded"
+STRIPE_PAYMENT_INTENT_FAILED = "payment_intent.payment_failed"
 
 CONF_TYPE_CHANNEL = "channel"
 CONF_TYPE_APP = "app"
@@ -33,3 +33,17 @@ WHATSAPP_CHANNEL = "whatsapp"
 TELEGRAM_CHANNEL = "telegram"
 SLACK_CHANNEL = "slack"
 iMESSAGE_CHANNEL = "iMessage"
+
+PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED="subscription.create"
+#creating subscription with transaction
+PAYSTACK_CUSTOMER_CHARGE_SUCCESS="charge.success"
+#sent to indicate a charge attempt will be made on the subscription. This will be sent 3 days before the next payment date.
+PAYSTACK_CUSTOMER_INVOICE_CREATE="invoice.create"
+#On the next payment date, a charge.success event will be sent, if the charge attempt was successful. If not, an invoice.payment_failed event will be sent instead.
+PAYSTACK_CUSTOMER_INVOICE_FAILED="invoice.payment_failed"
+#An invoice.update event will be sent after the charge attempt. This will contain the final status of the invoice for this subscription payment, as well as information on the charge if it was successful
+PAYSTACK_CUSTOMER_INVOICE_UPDATE="invoice.update"
+#event will be sent to indicate that the subscription will not renew on the next payment date.
+PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW="subscription.not_renew"
+#On the next payment date, a subscription.disable event will be sent to indicate that the subscription has been cancelled.
+PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED="subscription.disable"

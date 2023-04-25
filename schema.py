@@ -84,6 +84,11 @@ class CreateSubscriptionSchema(BaseSchema):
                                   'invalid': 'invalid, pass a valid string.'
                                 })
 
+  payment_provider = fields.String(required=False,
+                                   validate=validate.OneOf(['paystack', 'stripe']),
+                                   error_messages={
+                                      'invalid': 'invalid, pass either paystack or stripe.'
+                                })
 
 class AddApplicationSchema(BaseSchema):
   app = fields.String(required=True,
