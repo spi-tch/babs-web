@@ -51,7 +51,7 @@ def create_subscription():
     else:
       #default to status quo, for backward compatibility;
       status, message, session_url = billing_service.create_checkout_session(data, user)
-    if status:
+    if status and session_url is not None:
       return redirect(session_url, code=303)
 
     if "update" in message.lower() and "requested" in message.lower():

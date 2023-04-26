@@ -48,7 +48,7 @@ class PayStackService(BillingService):
       #amount is required, however plan amount/price would override the amount passed.
       transaction = paystack.transaction.initialize(email=user.email, amount=10000, plan=plan_code)
       session = transaction["data"]
-      if session["status"]:
+      if transaction["status"]:
         reference = session["reference"] #where do we store ref? we (might) need it query transaction status
         return True, "Success", session["authorization_url"]
       else:
@@ -57,7 +57,7 @@ class PayStackService(BillingService):
     else:
       subscriptions_response = paystack.subscription.list()
       subscriptions = subscriptions_response["data"]
-      customer_subscriptions = [sub for sub in subscriptions if sub["customer"]["customer_code"] == customer.paystack_id]
+      customer_subscriptions = [sub for sub in subscriptions if sub["customer"]["customer_code"] == customer.paystack_id and sub["status"] == "active"]
       if len(customer_subscriptions) > 1:
         raise Exception("Customer has more than one active subscription")
       if len(customer_subscriptions) == 1:
