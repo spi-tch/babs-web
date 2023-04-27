@@ -1,5 +1,6 @@
 import logging
 import os
+import requests
 from datetime import datetime
 
 from stripe.api_resources.customer import Customer
@@ -12,7 +13,6 @@ from data_access.payment import get_payment_for_user, create_payment
 from exceptns import UserNotFoundException
 
 logger = logging.getLogger(__name__)
-
 
 class UserNotFoundError:
   pass
@@ -126,3 +126,10 @@ def handle_paystack_subscription_failure_or_cancelled(customer, tier=None):
     raise UserNotFoundException("User not found")
 
   update_user(user, {"tier": tier, "sub_expires_at": None})
+
+def handle_expiring_cards(expiring_customer_cards, secret:str, paystack_url):
+  for item in expiring_customer_cards:
+    url = paystack_url + "/subscription/{}/manage/email".format(item["subscription"]["subscription_code"])
+    #paystack sends email to customer with link to update card
+    requests.post(url, headers={"Authorization": "Bearer {}".format(secret)})
+

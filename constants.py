@@ -47,3 +47,5 @@ PAYSTACK_CUSTOMER_INVOICE_UPDATE="invoice.update"
 PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW="subscription.not_renew"
 #On the next payment date, a subscription.disable event will be sent to indicate that the subscription has been cancelled.
 PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED="subscription.disable"
+#sent at the beginning of each month, contains list of all subscriptions with cards that expire that month
+PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS="subscription.expiring_cards"

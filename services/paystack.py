@@ -13,7 +13,8 @@ from constants import (PAYSTACK_CUSTOMER_CHARGE_SUCCESS,
 from data_access import PaystackCustomer, User, create_paystack_customer, get_paystack_customer_by_user_id
 from data_access.payment import Payment
 from util.handler import (handle_paystack_subscription_event, handle_subscription_deleted,
-                          handle_paystack_subscription_failure_or_cancelled, handle_paystack_payment, handle_paystack_new_subscription)
+                          handle_paystack_subscription_failure_or_cancelled, handle_paystack_payment, handle_paystack_new_subscription,
+                          handle_expiring_cards)
 
 from services import BillingService
 
@@ -110,14 +111,14 @@ class PayStackService(BillingService):
           logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED :{data_object}")
           handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"])
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_UPDATE:
-          #fetch subscribed plan code
           subscription = paystack.subscription.fetch(data_object["subscription"]["subscription_code"])
           data_object["plan_code"] = subscription["plan"]["plan_code"]
           handle_paystack_subscription_event(data_object)
           logger.info("Subscription deleted")
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_FAILED:
           handle_paystack_subscription_failure_or_cancelled(data_object, BASIC_PLAN)
-          logger.info("Got payment intent info")
+        elif _request["event"] == PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS:
+          handle_expiring_cards(data_object, SECRET_KEY, PAYSTACK_BASE_URL)
       except Exception as e:
         logger.error(f"Error handling Stripe webhook: {e}")
         return False, f"Error handling Stripe webhook: {e}", None
