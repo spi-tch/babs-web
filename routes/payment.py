@@ -50,7 +50,7 @@ def create_subscription():
         status, message, session_url = paystack_service.create_checkout_session(data, user)
     else:
       #default to status quo, for backward compatibility;
-      status, message, session_url = billing_service.create_checkout_session(data, user)
+      status, message, session_url = stripe_service.create_checkout_session(data, user)
     if status and session_url is not None:
       return redirect(session_url, code=303)
 
@@ -83,14 +83,14 @@ def create_portal():
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
     user = find_user_by_uuid(str(__id__))
     if request_data['payment_provider'] == 'stripe':
-      status, message, session = stripe_service.create_portal_session(user)
+      status, message, session_url = stripe_service.create_portal_session(user)
     elif request_data['payment_provider'] == 'paystack':
-      status, message, session = paystack_service.create_portal_session(user)
+      status, message, session_url = paystack_service.create_portal_session(user)
     else:
       #default to status quo, for backward compatibility;
-      status, message, session = billing_service.create_portal_session(user)
+      status, message, session_url = stripe_service.create_portal_session(user)
     if status:
-      return redirect(session.url, code=303)
+      return redirect(session_url, code=303)
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:

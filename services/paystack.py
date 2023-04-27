@@ -3,12 +3,13 @@ import os
 import json
 import hashlib
 import hmac
+import requests
 
 from paystackapi.paystack import Paystack
 from constants import (PAYSTACK_CUSTOMER_CHARGE_SUCCESS,
                        PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PREMIUM_PLAN, BASIC_PLAN,
                        PAYSTACK_CUSTOMER_INVOICE_FAILED, PAYSTACK_CUSTOMER_INVOICE_UPDATE, PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW,
-                       PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED)
+                       PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED, PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS)
 from data_access import PaystackCustomer, User, create_paystack_customer, get_paystack_customer_by_user_id
 from data_access.payment import Payment
 from util.handler import (handle_paystack_subscription_event, handle_subscription_deleted,
@@ -16,6 +17,7 @@ from util.handler import (handle_paystack_subscription_event, handle_subscriptio
 
 from services import BillingService
 
+PAYSTACK_BASE_URL=os.getenv('PAYSTACK_BASE_URL')
 SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')
 PREMIUM_PLAN_CODE = os.getenv('PAYSTACK_PREMIUM_PLAN_CODE')
 BASIC_PLAN_CODE = os.getenv('PAYSTACK_BASIC_PRICE_CODE')
@@ -23,6 +25,7 @@ BASIC_PLAN_CODE = os.getenv('PAYSTACK_BASIC_PRICE_CODE')
 paystack = Paystack(secret_key=SECRET_KEY)
 
 logger = logging.getLogger(__name__)
+
 
 
 class PayStackService(BillingService):
@@ -55,9 +58,7 @@ class PayStackService(BillingService):
         logger.error(f"Paystack initiate tranaction failed. Paystack response : {session}")
         return False, "Payment initiation failed", None
     else:
-      subscriptions_response = paystack.subscription.list()
-      subscriptions = subscriptions_response["data"]
-      customer_subscriptions = [sub for sub in subscriptions if sub["customer"]["customer_code"] == customer.paystack_id and sub["status"] == "active"]
+      customer_subscriptions = cls.__get_active_subscription(user.id)
       if len(customer_subscriptions) > 1:
         raise Exception("Customer has more than one active subscription")
       if len(customer_subscriptions) == 1:
@@ -75,7 +76,16 @@ class PayStackService(BillingService):
 
   @classmethod
   def create_portal_session(cls, user: User):
-    """"""
+    subscriptions = cls.__get_active_subscription(user.id)
+    if len(subscriptions) == 0:
+      return False, "No active savings", None
+    if len(subscriptions) > 1:
+      return False, "More than 1 active savings", None
+
+    url = PAYSTACK_BASE_URL + "/subscription/{}/manage/link".format(subscriptions[0]["subscription_code"])
+    generate_link = requests.get(url, headers={"Authorization": "Bearer {}".format(SECRET_KEY)})
+
+    return True, "success", generate_link.json()["data"]["link"]
 
   @classmethod
   def handle_webhook(cls, request: str, signature: str):
@@ -127,3 +137,18 @@ class PayStackService(BillingService):
     signature = hmac.new(key.encode(), request.encode(), hashlib.sha512).hexdigest()
     return signature == request_signature
 
+  def __get_active_subscription(user_id: str):
+    customer: PaystackCustomer = get_paystack_customer_by_user_id(user_id)
+    if customer is None:
+      raise Exception("Customer not found.")
+
+    _customer = paystack.customer.get(customer.paystack_id)
+
+    if _customer is None:
+      raise Exception("Customer not found.")
+
+    url = PAYSTACK_BASE_URL + "/subscription?customer=" + str(_customer["data"]["id"])
+    subscriptions_response = requests.get(url, headers={"Authorization" : "Bearer {}".format(SECRET_KEY)})
+    subscriptions = subscriptions_response.json()["data"]
+
+    return [sub for sub in subscriptions if sub["status"] == "active"]

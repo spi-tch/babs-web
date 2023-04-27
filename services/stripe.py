@@ -90,7 +90,7 @@ class StripeService(BillingService):
         customer=customer_stripe_id,
         return_url=os.getenv("FRONTEND_URL")
       )
-      return True, "Success", session
+      return True, "Success", session.url
     except Exception as e:
       return False, f"Unable to create portal session: {e}", None
 
