@@ -11,7 +11,7 @@ import services
 from exceptns import UserNotFoundException
 
 SECURITY_EXCLUSIONS = ['/user/login', '/admin/find_user', '/wait', '/', '/logo', '/logowtext',
-                       '/auth', '/webhooks/stripe', '/subscription', '/billing_portal']
+                       '/auth', '/webhooks/stripe', '/subscription', '/billing_portal', '/webhooks/paystack']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)

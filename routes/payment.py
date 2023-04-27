@@ -14,7 +14,8 @@ subscription = Blueprint('subscription', __name__)
 
 logger = logging.getLogger(__name__)
 billing_service = services.BillingService()
-
+stripe_service = services.StripeService()
+paystack_service = services.PayStackService();
 
 @subscription.route(f'/subscription', methods=['POST'])
 def create_subscription():
@@ -40,9 +41,18 @@ def create_subscription():
       raise Exception('User email has not been verified by Google.')
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
     user = find_user_by_uuid(str(__id__))
-    status, message, session = billing_service.create_checkout_session(data, user)
-    if status:
-      return redirect(session.url, code=303)
+
+    if request_data.get('payment_provider') is not None:
+      payment_provider = request_data["payment_provider"]
+      if payment_provider == 'stripe':
+        status, message, session_url = stripe_service.create_checkout_session(data, user)
+      elif payment_provider == 'paystack':
+        status, message, session_url = paystack_service.create_checkout_session(data, user)
+    else:
+      #default to status quo, for backward compatibility;
+      status, message, session_url = stripe_service.create_checkout_session(data, user)
+    if status and session_url is not None:
+      return redirect(session_url, code=303)
 
     if "update" in message.lower() and "requested" in message.lower():
       message = {'success': True, 'message': message}
@@ -72,9 +82,15 @@ def create_portal():
       raise Exception('User email has not been verified by Google.')
     __id__ = uuid.uuid5(uuid.NAMESPACE_URL, claims['email'])
     user = find_user_by_uuid(str(__id__))
-    status, message, session = billing_service.create_portal_session(user)
+    if request_data['payment_provider'] == 'stripe':
+      status, message, session_url = stripe_service.create_portal_session(user)
+    elif request_data['payment_provider'] == 'paystack':
+      status, message, session_url = paystack_service.create_portal_session(user)
+    else:
+      #default to status quo, for backward compatibility;
+      status, message, session_url = stripe_service.create_portal_session(user)
     if status:
-      return redirect(session.url, code=303)
+      return redirect(session_url, code=303)
     message = {'success': False, 'message': message}
     return message, 400
   except Exception as e:
@@ -87,9 +103,23 @@ def create_portal():
 def stripe_webhook():
   """Handle Stripe webhooks"""
   try:
-    status, message, _ = billing_service.handle_stripe_webhook(
+    status, message, _ = stripe_service.handle_webhook(
       request.get_data(as_text=True),
       request.headers.get('Stripe-Signature')
+    )
+    if status:
+      return {'success': True}, 200
+    return {'success': False, 'message': message}, 400
+  except Exception as e:
+    logger.error(e)
+    return {'success': False, 'message': 'Unable to handle webhook'}, 400
+
+@subscription.route(f'/webhooks/paystack', methods=['POST'])
+def paystack_webhook():
+  try:
+    status, message, _ = paystack_service.handle_webhook(
+      request.get_data(as_text=True),
+      request.headers.get('x-paystack-signature')
     )
     if status:
       return {'success': True}, 200
