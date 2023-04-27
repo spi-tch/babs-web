@@ -34,14 +34,14 @@ TELEGRAM_CHANNEL = "telegram"
 SLACK_CHANNEL = "slack"
 iMESSAGE_CHANNEL = "iMessage"
 
+#successfully created new subscription
 PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED="subscription.create"
-#creating subscription with transaction
+#payment was successful
 PAYSTACK_CUSTOMER_CHARGE_SUCCESS="charge.success"
-#sent to indicate a charge attempt will be made on the subscription. This will be sent 3 days before the next payment date.
-PAYSTACK_CUSTOMER_INVOICE_CREATE="invoice.create"
-#On the next payment date, a charge.success event will be sent, if the charge attempt was successful. If not, an invoice.payment_failed event will be sent instead.
+#sent when charge attempt failed.
 PAYSTACK_CUSTOMER_INVOICE_FAILED="invoice.payment_failed"
-#An invoice.update event will be sent after the charge attempt. This will contain the final status of the invoice for this subscription payment, as well as information on the charge if it was successful
+#An invoice.update event will be sent after a subsequent charge attempt.
+#This will contain the final status of the invoice for this subscription payment
 PAYSTACK_CUSTOMER_INVOICE_UPDATE="invoice.update"
 #event will be sent to indicate that the subscription will not renew on the next payment date.
 PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW="subscription.not_renew"

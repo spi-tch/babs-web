@@ -69,11 +69,18 @@ def handle_customer_deleted(customer: Customer):
     pass
   logger.info("Customer deleted")
 
-def handle_paystack_subscription_payment_event(status, plan_code, customer, expiry_date, amount, reference):
-  if status != "success":
-    #payment for sub failed, switch to baaic plan
-    return handle_paystack_subscription_failure_or_cancelled(customer, BASIC_PLAN)
+def handle_paystack_payment(transaction: dict):
+  customer = get_paystack_customer(transaction["customer"]["customer_code"])
+  if customer is None:
+    raise UserNotFoundException("Paystack customer not found")
+  user = find_user_by_id(customer.user_id)
+  amount = transaction["amount"] / 100
+  status = "success" if transaction["status"] == "success" else "failed"
 
+  create_payment(user_uuid=user.uuid, amount=amount, currency=transaction["currency"], success=status, stripe_id=transaction["reference"])
+
+def handle_paystack_new_subscription(subscription: dict):
+  plan_code = subscription["plan"]["plan_code"]
   if plan_code == os.getenv("PAYSTACK_PREMIUM_PLAN_CODE"):
     tier = PREMIUM_PLAN
   elif plan_code == os.getenv("PAYSTACK_BASIC_PRICE_CODE"):
@@ -81,24 +88,39 @@ def handle_paystack_subscription_payment_event(status, plan_code, customer, expi
   else:
     raise RuntimeError("Invalid plan_code")
 
-  logger.info(f"Subscription created for customer {customer}")
-  customer = get_paystack_customer(customer)
+  customer = get_paystack_customer(subscription["customer"]["customer_code"])
+
   if customer is None:
     raise UserNotFoundException("Paystack customer not found")
   if user := find_user_by_id(customer.user_id):
-    expiry = datetime.utcfromtimestamp(expiry_date)
-    update_user(user, {"tier": tier, "sub_expires_at": expiry})
-    pass
+    update_user(user, {"tier": tier, "sub_expires_at": subscription["next_payment_date"]})
+
+def handle_paystack_subscription_event(subscription: dict):
+  customer = subscription["customer"]["customer_code"]
+  if subscription["status"] != "success":
+    #payment for sub failed, switch to basic plan
+    return handle_paystack_subscription_failure_or_cancelled(customer, BASIC_PLAN)
+
+  if subscription["plan_code"] == os.getenv("PAYSTACK_PREMIUM_PLAN_CODE"):
+    tier = PREMIUM_PLAN
+  elif subscription["plan_code"] == os.getenv("PAYSTACK_BASIC_PRICE_CODE"):
+    tier = BASIC_PLAN
+  else:
+    raise RuntimeError("Invalid plan_code")
+
+  logger.info(f"Subscription created for customer {customer}")
+  _customer = get_paystack_customer(customer)
+  if _customer is None:
+    raise UserNotFoundException("Paystack customer not found")
+  if user := find_user_by_id(_customer.user_id):
+    update_user(user, {"tier": tier, "sub_expires_at": subscription["subscription"]["next_payment_date"]})
+
   logger.info("Subscription created")
-
-  #create payment, maybe we can rename the stripe_id column to payment_reference to cater for other providers
-  create_payment(user_uuid=user.uuid, amount=amount, currency="NGN", success="success", stripe_id=reference)
-
 
 def handle_paystack_subscription_failure_or_cancelled(customer, tier=None):
   customer = get_paystack_customer(customer)
   if customer is None:
-    raise UserNotFoundException("Stripe customer not found")
+    raise UserNotFoundException("Paystack customer not found")
   user = find_user_by_id(customer.user_id)
   if user is None:
     raise UserNotFoundException("User not found")

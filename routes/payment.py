@@ -103,7 +103,7 @@ def create_portal():
 def stripe_webhook():
   """Handle Stripe webhooks"""
   try:
-    status, message, _ = billing_service.handle_webhook(
+    status, message, _ = stripe_service.handle_webhook(
       request.get_data(as_text=True),
       request.headers.get('Stripe-Signature')
     )
@@ -117,9 +117,9 @@ def stripe_webhook():
 @subscription.route(f'/webhooks/paystack', methods=['POST'])
 def paystack_webhook():
   try:
-    status, message, _ = billing_service.handle_webhook(
+    status, message, _ = paystack_service.handle_webhook(
       request.get_data(as_text=True),
-      request.headers.get('x-paystack-signature header')
+      request.headers.get('x-paystack-signature')
     )
     if status:
       return {'success': True}, 200

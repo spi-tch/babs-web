@@ -6,13 +6,13 @@ import hmac
 
 from paystackapi.paystack import Paystack
 from constants import (PAYSTACK_CUSTOMER_CHARGE_SUCCESS,
-                       PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PAYSTACK_CUSTOMER_INVOICE_CREATE, PREMIUM_PLAN, BASIC_PLAN,
+                       PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PREMIUM_PLAN, BASIC_PLAN,
                        PAYSTACK_CUSTOMER_INVOICE_FAILED, PAYSTACK_CUSTOMER_INVOICE_UPDATE, PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW,
                        PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED)
 from data_access import PaystackCustomer, User, create_paystack_customer, get_paystack_customer_by_user_id
 from data_access.payment import Payment
-from util.handler import (handle_paystack_subscription_payment_event, handle_subscription_deleted,
-                          handle_paystack_subscription_failure_or_cancelled)
+from util.handler import (handle_paystack_subscription_event, handle_subscription_deleted,
+                          handle_paystack_subscription_failure_or_cancelled, handle_paystack_payment, handle_paystack_new_subscription)
 
 from services import BillingService
 
@@ -80,7 +80,7 @@ class PayStackService(BillingService):
   @classmethod
   def handle_webhook(cls, request: str, signature: str):
     try:
-      if not cls.__verify_signature(request, signature):
+      if not cls.__verify_signature(cls, request, signature):
         logger.error('⚠️ Webhook signature verification failed.')
         return False, f"Invalid signature: {signature}, request: {request}", None
 
@@ -91,17 +91,19 @@ class PayStackService(BillingService):
 
       try:
         if _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED:
-          logger.debug(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED :{data_object}")
-        elif _request["event"] == PAYSTACK_CUSTOMER_CHARGE_SUCCESS:
-          logger.debug(f"PAYSTACK_CUSTOMER_CHARGE_SUCCESS :{data_object}")
+          logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED :{data_object}")
+          handle_paystack_new_subscription(data_object)
+        elif _request["event"] == PAYSTACK_CUSTOMER_CHARGE_SUCCESS or _request["event"] == PAYSTACK_CUSTOMER_INVOICE_FAILED:
+          logger.info(f"PAYSTACK_CUSTOMER_CHARGE :{data_object}")
+          handle_paystack_payment(data_object)
         elif _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED:
-          handle_paystack_subscription_failure_or_cancelled(data_object)
+          logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED :{data_object}")
+          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"])
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_UPDATE:
-          #fetch sub details
+          #fetch subscribed plan code
           subscription = paystack.subscription.fetch(data_object["subscription"]["subscription_code"])
-          handle_paystack_subscription_payment_event(data_object["status"], subscription["plan"]["plan_code"],
-                                                     data_object["customer"]["customer_code"], data_object["next_payment_date"],
-                                                     data_object["amount"], data_object["transaction"]["reference"])
+          data_object["plan_code"] = subscription["plan"]["plan_code"]
+          handle_paystack_subscription_event(data_object)
           logger.info("Subscription deleted")
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_FAILED:
           handle_paystack_subscription_failure_or_cancelled(data_object, BASIC_PLAN)
@@ -111,11 +113,12 @@ class PayStackService(BillingService):
         return False, f"Error handling Stripe webhook: {e}", None
 
     except ValueError as e:
-      logger.error("Invalid payload on Stripe webhook")
+      logger.error("Invalid payload on Paystack webhook")
       return False, f"Invalid payload: {e}", None
     except Exception as e:
       logger.error('⚠️ An unexpected error occurred.' + str(e))
       return False, f"An error occurred: {e}", None
+    return True, "Success", None
   @classmethod
   def get_payment_status(cls, user_id):
     """"""
