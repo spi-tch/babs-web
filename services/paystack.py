@@ -18,7 +18,7 @@ from util.handler import (handle_paystack_subscription_event, handle_subscriptio
 
 from services import BillingService
 
-PAYSTACK_BASE_URL=os.getenv('PAYSTACK_BASE_URL')
+PAYSTACK_BASE_URL = os.getenv('PAYSTACK_BASE_URL')
 SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')
 PREMIUM_PLAN_CODE = os.getenv('PAYSTACK_PREMIUM_PLAN_CODE')
 BASIC_PLAN_CODE = os.getenv('PAYSTACK_BASIC_PlAN_CODE')
@@ -26,7 +26,6 @@ BASIC_PLAN_CODE = os.getenv('PAYSTACK_BASIC_PlAN_CODE')
 paystack = Paystack(secret_key=SECRET_KEY)
 
 logger = logging.getLogger(__name__)
-
 
 
 class PayStackService(BillingService):
