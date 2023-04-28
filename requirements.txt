@@ -23,3 +23,4 @@ google-auth-oauthlib==0.5.3
 stripe==5.2.0
 google-api-python-client==2.74.0
 slack-bolt==1.16.2
+paystackapi==2.1.0
