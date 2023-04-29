@@ -59,6 +59,12 @@ class PayStackService(BillingService):
         return False, "Payment initiation failed", None
     else:
       customer_subscriptions = cls.__get_active_subscription(user.id)
+      if not customer_subscriptions:  # in case the user didn't complete the transaction the last time.
+        transaction = paystack.transaction.initialize(email=user.email, amount=10000, plan=plan_code)
+        session = transaction["data"]
+        if transaction["status"]:
+          reference = session["reference"]  # where do we store ref? we (might) need it query transaction status
+          return True, "Success", session["authorization_url"]
       if len(customer_subscriptions) > 1:
         raise Exception("Customer has more than one active subscription")
       if len(customer_subscriptions) == 1:
