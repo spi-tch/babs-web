@@ -9,7 +9,8 @@ from paystackapi.paystack import Paystack
 from constants import (PAYSTACK_CUSTOMER_CHARGE_SUCCESS,
                        PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PREMIUM_PLAN, BASIC_PLAN,
                        PAYSTACK_CUSTOMER_INVOICE_FAILED, PAYSTACK_CUSTOMER_INVOICE_UPDATE, PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW,
-                       PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED, PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS)
+                       PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED, PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS, SUBSCRIPTION_STATUS_ACTIVE,
+                       SUBSCRIPTION_STATUS_CANCELLED, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_NOT_RENEWING)
 from data_access import PaystackCustomer, User, create_paystack_customer, get_paystack_customer_by_user_id
 from data_access.payment import Payment
 from util.handler import (handle_paystack_subscription_event, handle_subscription_deleted,
@@ -109,19 +110,19 @@ class PayStackService(BillingService):
         if _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED:
           logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED :{data_object}")
           handle_paystack_new_subscription(data_object)
-        elif _request["event"] == PAYSTACK_CUSTOMER_CHARGE_SUCCESS or _request["event"] == PAYSTACK_CUSTOMER_INVOICE_FAILED:
+        elif _request["event"] == PAYSTACK_CUSTOMER_CHARGE_SUCCESS:
           logger.info(f"PAYSTACK_CUSTOMER_CHARGE :{data_object}")
           handle_paystack_payment(data_object)
+        elif _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW:
+          logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW :{data_object}")
+          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_NOT_RENEWING)
         elif _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED:
           logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED :{data_object}")
-          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"])
+          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_CANCELLED)
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_UPDATE:
           subscription = paystack.subscription.fetch(data_object["subscription"]["subscription_code"])
           data_object["plan_code"] = subscription["plan"]["plan_code"]
           handle_paystack_subscription_event(data_object)
-          logger.info("Subscription deleted")
-        elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_FAILED:
-          handle_paystack_subscription_failure_or_cancelled(data_object, BASIC_PLAN)
         elif _request["event"] == PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS:
           handle_expiring_cards(data_object, SECRET_KEY, PAYSTACK_BASE_URL)
       except Exception as e:

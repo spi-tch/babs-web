@@ -7,9 +7,10 @@ from stripe.api_resources.customer import Customer
 from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
-from constants import PREMIUM_PLAN, BASIC_PLAN
+from constants import PREMIUM_PLAN, BASIC_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE
 from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, get_paystack_customer
 from data_access.payment import get_payment_for_user, create_payment
+from data_access.subscription import get_user_subscription, create_subscription, update_subscription
 from exceptns import UserNotFoundException
 
 logger = logging.getLogger(__name__)
@@ -75,9 +76,8 @@ def handle_paystack_payment(transaction: dict):
     raise UserNotFoundException("Paystack customer not found")
   user = find_user_by_id(customer.user_id)
   amount = transaction["amount"] / 100
-  status = "success" if transaction["status"] == "success" else "failed"
 
-  create_payment(user_uuid=user.uuid, amount=amount, currency=transaction["currency"], success=status, stripe_id=transaction["reference"])
+  create_payment(user_uuid=user.uuid, amount=amount, currency=transaction["currency"], success="success", stripe_id=transaction["reference"])
 
 def handle_paystack_new_subscription(subscription: dict):
   plan_code = subscription["plan"]["plan_code"]
@@ -94,12 +94,13 @@ def handle_paystack_new_subscription(subscription: dict):
     raise UserNotFoundException("Paystack customer not found")
   if user := find_user_by_id(customer.user_id):
     update_user(user, {"tier": tier, "sub_expires_at": subscription["next_payment_date"]})
+    create_subscription(user_uuid=user.uuid, plan=tier, provider="paystack", next_subscription_at=subscription["next_payment_date"], status=SUBSCRIPTION_STATUS_ACTIVE)
 
 def handle_paystack_subscription_event(subscription: dict):
   customer = subscription["customer"]["customer_code"]
   if subscription["status"] != "success":
     #payment for sub failed, switch to basic plan
-    return handle_paystack_subscription_failure_or_cancelled(customer, BASIC_PLAN)
+    return handle_paystack_subscription_failure_or_cancelled(customer, SUBSCRIPTION_STATUS_CHARGE_FAILED, BASIC_PLAN)
 
   if subscription["plan_code"] == os.getenv("PAYSTACK_PREMIUM_PLAN_CODE"):
     tier = PREMIUM_PLAN
@@ -114,10 +115,12 @@ def handle_paystack_subscription_event(subscription: dict):
     raise UserNotFoundException("Paystack customer not found")
   if user := find_user_by_id(_customer.user_id):
     update_user(user, {"tier": tier, "sub_expires_at": subscription["subscription"]["next_payment_date"]})
+    update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_ACTIVE, provider="paystack",
+                        next_subscription_at=subscription["subscription"]["next_payment_date"])
 
   logger.info("Subscription created")
 
-def handle_paystack_subscription_failure_or_cancelled(customer, tier=None):
+def handle_paystack_subscription_failure_or_cancelled(customer, status, tier=None):
   customer = get_paystack_customer(customer)
   if customer is None:
     raise UserNotFoundException("Paystack customer not found")
@@ -126,6 +129,7 @@ def handle_paystack_subscription_failure_or_cancelled(customer, tier=None):
     raise UserNotFoundException("User not found")
 
   update_user(user, {"tier": tier, "sub_expires_at": None})
+  update_subscription(user_uuid=user.uuid, status=status, provider="paystack")
 
 def handle_expiring_cards(expiring_customer_cards, secret:str, paystack_url):
   for item in expiring_customer_cards:

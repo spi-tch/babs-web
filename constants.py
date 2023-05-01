@@ -49,3 +49,8 @@ PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW="subscription.not_renew"
 PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED="subscription.disable"
 #sent at the beginning of each month, contains list of all subscriptions with cards that expire that month
 PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS="subscription.expiring_cards"
+
+SUBSCRIPTION_STATUS_ACTIVE = "active"
+SUBSCRIPTION_STATUS_CHARGE_FAILED = "charge_failed"
+SUBSCRIPTION_STATUS_NOT_RENEWING = "not_renewing"
+SUBSCRIPTION_STATUS_CANCELLED = "cancelled"

@@ -8,6 +8,7 @@ from .channels import *
 from .developer import *
 from .apps import *
 from .event import *
+from .subscription import *
 
 T = TypeVar('T')
 
