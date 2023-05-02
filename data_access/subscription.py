@@ -1,7 +1,6 @@
 import logging
 
 from util.app import db
-from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 

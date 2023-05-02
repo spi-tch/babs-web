@@ -10,8 +10,9 @@ from constants import (STRIPE_CHECKOUT_MODE, STRIPE_CUSTOMER_SUBSCRIPTION_DELETE
                        STRIPE_PAYMENT_INTENT_SUCCEEDED, STRIPE_PAYMENT_INTENT_FAILED, STRIPE_CUSTOMER_DELETED)
 from data_access import StripeCustomer, User, create_stripe_customer, get_stripe_customer_by_user_id
 from data_access.payment import Payment
-from util.handler import (handle_stripe_subscription_created_or_updated, handle_subscription_deleted,
-                          handle_payment_success_or_failure, handle_customer_deleted)
+from util.handler import (handle_subscription_deleted,
+                          handle_payment_success_or_failure, handle_customer_deleted, handle_stripe_subscription_creation,
+                          handle_stripe_subscription_update)
 
 from services import BillingService
 
@@ -109,8 +110,11 @@ class StripeService(BillingService):
 
     data_object = event["data"]["object"]
     try:
-      if event["type"] == STRIPE_CUSTOMER_SUBSCRIPTION_CREATED or event["type"] == STRIPE_CUSTOMER_SUBSCRIPTION_UPDATED:
-        handle_stripe_subscription_created_or_updated(data_object)
+      if event["type"] == STRIPE_CUSTOMER_SUBSCRIPTION_CREATED:
+        handle_stripe_subscription_creation(data_object)
+      elif event["type"] == STRIPE_CUSTOMER_SUBSCRIPTION_UPDATED:
+        handle_stripe_subscription_update(data_object)
+        logger.info("Subscription updated")
       elif event["type"] == STRIPE_CUSTOMER_SUBSCRIPTION_DELETED:
         handle_subscription_deleted(data_object)
         logger.info("Subscription deleted")
