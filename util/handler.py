@@ -7,8 +7,9 @@ from stripe.api_resources.customer import Customer
 from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
-from constants import PREMIUM_PLAN, BASIC_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE
-from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, get_paystack_customer
+from constants import PREMIUM_PLAN, BASIC_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE, SUBSCRIPTION_STATUS_CANCELLED
+from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, \
+  get_paystack_customer, User
 from data_access.payment import get_payment_for_user, create_payment
 from data_access.subscription import get_user_subscription, create_subscription, update_subscription
 from exceptns import UserNotFoundException
@@ -19,7 +20,7 @@ class UserNotFoundError:
   pass
 
 
-def handle_stripe_subscription_created_or_updated(subscription: Subscription):
+def __update_user(subscription: Subscription) -> [User, str]:
   tier = subscription["items"]["data"][0]["price"]["id"]
   if tier == os.getenv("STRIPE_PREMIUM_PRICE_ID"):
     tier = PREMIUM_PLAN
@@ -30,12 +31,14 @@ def handle_stripe_subscription_created_or_updated(subscription: Subscription):
   customer = get_stripe_customer(customer)
   if customer is None:
     raise UserNotFoundException("Stripe customer not found")
-  if user := find_user_by_id(customer.user_id):
-    expiry = datetime.utcfromtimestamp(subscription["current_period_end"])
-    update_user(user, {"tier": tier, "sub_expires_at": expiry})
-    pass
-  logger.info("Subscription created")
+  user = find_user_by_id(customer.user_id)
+  if user is None:
+    raise UserNotFoundException("User not found")
 
+  expiry = datetime.utcfromtimestamp(subscription["current_period_end"])
+  update_user(user, {"tier": tier, "sub_expires_at": expiry})
+
+  return user, tier
 
 def handle_subscription_deleted(subscription: Subscription):
   customer = subscription["customer"]
@@ -43,9 +46,9 @@ def handle_subscription_deleted(subscription: Subscription):
   if customer is not None:
     if user := find_user_by_id(customer.user_id):
       update_user(user, {"tier": None, "sub_expires_at": None})
+      update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_CANCELLED, provider="paystack")
     pass
   logger.info("Subscription deleted")
-
 
 def handle_payment_success_or_failure(payment_intent: PaymentIntent):
   customer = payment_intent["customer"]
@@ -61,14 +64,26 @@ def handle_payment_success_or_failure(payment_intent: PaymentIntent):
   else:
     update_user(user, {"tier": BASIC_PLAN, "sub_expires_at": None})
 
-
 def handle_customer_deleted(customer: Customer):
   customer = delete_stripe_customer(customer["id"])
   if customer is not None:
     if user := find_user_by_id(customer.user_id):
       update_user(user, {"tier": None, "sub_expires_at": None})
+      update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_CANCELLED, provider="stripe")
     pass
   logger.info("Customer deleted")
+
+def handle_stripe_subscription_creation(subscription: Subscription):
+  user, tier = __update_user(subscription)
+  create_subscription(user_uuid=user.uuid, plan=tier, provider='stripe',
+                      next_subscription_at=subscription["current_period_end"])
+  logger.info("Subscription created")
+
+
+def handle_stripe_subscription_update(subscription: Subscription):
+  user, tier = __update_user(subscription)
+  update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_ACTIVE, provider="stripe",
+                      next_subscription_at=subscription["current_period_end"])
 
 def handle_paystack_payment(transaction: dict):
   customer = get_paystack_customer(transaction["customer"]["customer_code"])
