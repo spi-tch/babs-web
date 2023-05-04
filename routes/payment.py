@@ -15,7 +15,7 @@ subscription = Blueprint('subscription', __name__)
 logger = logging.getLogger(__name__)
 billing_service = services.BillingService()
 stripe_service = services.StripeService()
-paystack_service = services.PayStackService();
+paystack_service = services.PayStackService()
 
 @subscription.route(f'/subscription', methods=['POST', 'GET'])
 def create_subscription():
@@ -78,7 +78,7 @@ def create_subscription():
                                    audience=os.getenv('GOOGLE_CLIENT_ID'))
     except Exception as e:
       logger.error(e)
-      message = {"success": False, "message": "Bad request"}
+      message = {"success": False, "message": f"Error: {str(e)}"}
       return message, 400
 
     if not claims['email_verified']:
@@ -166,7 +166,7 @@ def paystack_webhook():
 def get_payment_status():
   """Get payment status"""
   try:
-    status, message, data = billing_service.get_payment_status(request.environ["user"].id)
+    status, message, data = billing_service.get_payment_status(request.environ["user"].uuid)
     if status:
       return {'success': True, 'data': data}, 200
     message = {'success': False, 'message': message}
