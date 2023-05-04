@@ -44,7 +44,7 @@ def create_google_cred(user_id, credentials, email):
     refresh_token=credentials.refresh_token,
     token_uri=credentials.token_uri,
     client_id=credentials.client_id,
-    client_secret="credentials.client_secret",  # todo: fix this
+    client_secret=credentials.client_secret,
     scopes=credentials.scopes,
     email=email
   )
