@@ -89,8 +89,8 @@ def create_subscription():
     sub = billing_service.get_subscription_status(user.uuid)
 
     if sub is None:
-      message = {"success": False, "message": "Subscription not found"}
-      return message, 404
+      message = {"success": False, "message": "Subscription not found", 'data': {}}
+      return message, 200
 
     message = {'message': "Subscription fetched successfully", 'success': True, 'data': sub}
     return message, 200
@@ -123,7 +123,7 @@ def create_portal():
       #default to status quo, for backward compatibility;
       status, message, session_url = stripe_service.create_portal_session(user)
     if status:
-      return redirect(session_url, payment_provider, code=303)
+      return redirect(session_url, code=303)
     message = {'success': False, 'message': message, 'payment_provider': payment_provider}
     return message, 400
   except Exception as e:
