@@ -75,7 +75,7 @@ def handle_customer_deleted(customer: Customer):
 
 def handle_stripe_subscription_creation(subscription: Subscription):
   user, tier = __update_user(subscription)
-  create_subscription(user_uuid=user.uuid, plan=tier, provider='stripe',
+  create_subscription(user_uuid=user.uuid, plan=tier, status=SUBSCRIPTION_STATUS_ACTIVE, provider='stripe',
                       next_subscription_at=subscription["current_period_end"])
   logger.info("Subscription created")
 
