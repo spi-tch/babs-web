@@ -114,6 +114,7 @@ class Watch(db.Model):
   latest = db.Column(db.String, nullable=False)
   app_name = db.Column(db.String, nullable=False)
   email = db.Column(db.String, nullable=False)
+  resource_id = db.Column(db.String, nullable=True)
 
 
 def delete_watch(user_id, app_name):
@@ -132,13 +133,13 @@ def delete_watch(user_id, app_name):
     db.session.close()
 
 
-def create_or_update_watch(user_id, app_name, latest, email):
+def create_or_update_watch(user_id, app_name, latest, email, resource_id=None):
   try:
     watch = Watch.query.filter_by(user_id=user_id, email=email, app_name=app_name).first()
     if watch:
       watch.latest = latest
     else:
-      watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email)
+      watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email, resource_id=resource_id)
       db.session.add(watch)
     db.session.commit()
     return True
@@ -165,3 +166,7 @@ def add_email_to_watch(user_id, email):
     return False
   finally:
     db.session.close()
+
+
+def get_watch(user_id, app_name, email):
+  return Watch.query.filter_by(user_id=user_id, email=email, app_name=app_name).first()
