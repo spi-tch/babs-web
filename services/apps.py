@@ -3,7 +3,7 @@ import logging
 from configs.apps import AppConfig
 from constants import GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME
 from data_access import get_app_by_user, create_app, get_user_app, delete_app, get_app_by_email, User, update_app_config
-from util.watch import watch_gmail, delete_gmail_watch
+from util.watch import watch_gmail, delete_gmail_watch, watch_calendar, delete_calendar_watch
 
 logger = logging.getLogger(__name__)
 GOOGLE_APPS = [GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME]
@@ -23,8 +23,7 @@ class AppService:
       if app_name == GOOGLE_MAIL_APP_NAME:
         watch_gmail(user, creds, email)
       elif app_name == GOOGLE_CAL_APP_NAME:
-        # watch_calendar(user["uuid"], creds)
-        pass
+        watch_calendar(user, creds, email)
       return True, 'Application added.', {'app': app_name}
     return False, f'Could not create {app_name} for user.', None
 
@@ -53,8 +52,7 @@ class AppService:
     if app_name == GOOGLE_MAIL_APP_NAME:
       delete_gmail_watch(user.uuid, email)
     elif app_name == GOOGLE_CAL_APP_NAME:
-      # delete_calendar_watch(user)
-      pass
+      delete_calendar_watch(user.uuid, email)
     if delete_app(app):
       return True, 'App removed.'
     return False, 'Could not remove app.'
