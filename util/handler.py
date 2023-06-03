@@ -7,7 +7,7 @@ from stripe.api_resources.customer import Customer
 from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
-from constants import PREMIUM_PLAN, BASIC_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE, SUBSCRIPTION_STATUS_CANCELLED
+from constants import PREMIUM_PLAN, FREE_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE, SUBSCRIPTION_STATUS_CANCELLED, SUBSCRIPTION_STATUS_NOT_RENEWING
 from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, \
   get_paystack_customer, User
 from data_access.payment import get_payment_for_user, create_payment
@@ -25,7 +25,7 @@ def __update_user(subscription: Subscription) -> [User, str]:
   if tier == os.getenv("STRIPE_PREMIUM_PRICE_ID"):
     tier = PREMIUM_PLAN
   elif tier == os.getenv("STRIPE_BASIC_PRICE_ID"):
-    tier = BASIC_PLAN
+    tier = FREE_PLAN
   customer = subscription["customer"]
   logger.info(f"Subscription created for customer {customer}")
   customer = get_stripe_customer(customer)
@@ -62,7 +62,7 @@ def handle_payment_success_or_failure(payment_intent: PaymentIntent):
   if payment is None:
     create_payment(user.uuid, payment_intent)
   else:
-    update_user(user, {"tier": BASIC_PLAN, "sub_expires_at": None})
+    update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
 
 def handle_customer_deleted(customer: Customer):
   customer = delete_stripe_customer(customer["id"])
@@ -98,8 +98,8 @@ def handle_paystack_new_subscription(subscription: dict):
   plan_code = subscription["plan"]["plan_code"]
   if plan_code == os.getenv("PAYSTACK_PREMIUM_PLAN_CODE"):
     tier = PREMIUM_PLAN
-  elif plan_code == os.getenv("PAYSTACK_BASIC_PRICE_CODE"):
-    tier = BASIC_PLAN
+  elif plan_code == os.getenv("PAYSTACK_FREE_PRICE_CODE"):
+    tier = FREE_PLAN
   else:
     raise RuntimeError("Invalid plan_code")
 
@@ -114,13 +114,13 @@ def handle_paystack_new_subscription(subscription: dict):
 def handle_paystack_subscription_event(subscription: dict):
   customer = subscription["customer"]["customer_code"]
   if subscription["status"] != "success":
-    #payment for sub failed, switch to basic plan
-    return handle_paystack_subscription_failure_or_cancelled(customer, SUBSCRIPTION_STATUS_CHARGE_FAILED, BASIC_PLAN)
+    #payment for sub failed, switch to free plan
+    return handle_paystack_subscription_update(customer, SUBSCRIPTION_STATUS_CHARGE_FAILED)
 
   if subscription["plan_code"] == os.getenv("PAYSTACK_PREMIUM_PLAN_CODE"):
     tier = PREMIUM_PLAN
-  elif subscription["plan_code"] == os.getenv("PAYSTACK_BASIC_PRICE_CODE"):
-    tier = BASIC_PLAN
+  elif subscription["plan_code"] == os.getenv("PAYSTACK_FREE_PRICE_CODE"):
+    tier = FREE_PLAN
   else:
     raise RuntimeError("Invalid plan_code")
 
@@ -135,7 +135,7 @@ def handle_paystack_subscription_event(subscription: dict):
 
   logger.info("Subscription created")
 
-def handle_paystack_subscription_failure_or_cancelled(customer, status, tier=None):
+def handle_paystack_subscription_failure_or_cancelled(customer, status):
   customer = get_paystack_customer(customer)
   if customer is None:
     raise UserNotFoundException("Paystack customer not found")
@@ -143,7 +143,20 @@ def handle_paystack_subscription_failure_or_cancelled(customer, status, tier=Non
   if user is None:
     raise UserNotFoundException("User not found")
 
-  update_user(user, {"tier": tier, "sub_expires_at": None})
+  update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
+  update_subscription(user_uuid=user.uuid, status=status, provider="paystack")
+
+def handle_paystack_subscription_update(customer, status):
+  customer = get_paystack_customer(customer)
+  if customer is None:
+    raise UserNotFoundException("Paystack customer not found")
+  user = find_user_by_id(customer.user_id)
+  if user is None:
+    raise UserNotFoundException("User not found")
+
+  if status == SUBSCRIPTION_STATUS_CHARGE_FAILED or status == SUBSCRIPTION_STATUS_CANCELLED:
+    update_user(user, {"tier": FREE_PLAN,"sub_expires_at": None})
+
   update_subscription(user_uuid=user.uuid, status=status, provider="paystack")
 
 def handle_expiring_cards(expiring_customer_cards, secret:str, paystack_url):

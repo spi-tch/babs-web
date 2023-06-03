@@ -6,7 +6,7 @@ from stripe.api_resources.customer import Customer
 from stripe.error import SignatureVerificationError
 
 from constants import (STRIPE_CHECKOUT_MODE, STRIPE_CUSTOMER_SUBSCRIPTION_DELETED,
-                       STRIPE_CUSTOMER_SUBSCRIPTION_CREATED, STRIPE_CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, BASIC_PLAN,
+                       STRIPE_CUSTOMER_SUBSCRIPTION_CREATED, STRIPE_CUSTOMER_SUBSCRIPTION_UPDATED, PREMIUM_PLAN, FREE_PLAN,
                        STRIPE_PAYMENT_INTENT_SUCCEEDED, STRIPE_PAYMENT_INTENT_FAILED, STRIPE_CUSTOMER_DELETED)
 from data_access import StripeCustomer, User, create_stripe_customer, get_stripe_customer_by_user_id
 from data_access.payment import Payment
@@ -18,7 +18,7 @@ from services import BillingService
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID")
-BASIC_PRICE_ID = os.getenv("STRIPE_BASIC_PRICE_ID")
+FREE_PRICE_ID = os.getenv("STRIPE_BASIC_PRICE_ID")
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,8 @@ class StripeService(BillingService):
 
     if data["plan"] == PREMIUM_PLAN:
       price_id = PREMIUM_PRICE_ID
-    elif data["plan"] == BASIC_PLAN:
-      price_id = BASIC_PRICE_ID
+    elif data["plan"] == FREE_PLAN:
+      price_id = FREE_PRICE_ID
     else:
       return False, "Invalid plan", None
 

@@ -7,7 +7,7 @@ import requests
 
 from paystackapi.paystack import Paystack
 from constants import (PAYSTACK_CUSTOMER_CHARGE_SUCCESS,
-                       PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PREMIUM_PLAN, BASIC_PLAN,
+                       PAYSTACK_CUSTOMER_SUBSCRIPTION_CREATED, PREMIUM_PLAN, FREE_PLAN,
                        PAYSTACK_CUSTOMER_INVOICE_FAILED, PAYSTACK_CUSTOMER_INVOICE_UPDATE, PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW,
                        PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED, PAYSTACK_SUBSCRIPTION_EXPIRING_CARDS, SUBSCRIPTION_STATUS_ACTIVE,
                        SUBSCRIPTION_STATUS_CANCELLED, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_NOT_RENEWING)
@@ -15,14 +15,14 @@ from data_access import PaystackCustomer, User, create_paystack_customer, get_pa
 from data_access.payment import Payment
 from util.handler import (handle_paystack_subscription_event, handle_subscription_deleted,
                           handle_paystack_subscription_failure_or_cancelled, handle_paystack_payment, handle_paystack_new_subscription,
-                          handle_expiring_cards)
+                          handle_expiring_cards, handle_paystack_subscription_update)
 
 from services import BillingService
 
 PAYSTACK_BASE_URL = os.getenv('PAYSTACK_BASE_URL')
 SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')
 PREMIUM_PLAN_CODE = os.getenv('PAYSTACK_PREMIUM_PLAN_CODE')
-BASIC_PLAN_CODE = os.getenv('PAYSTACK_BASIC_PlAN_CODE')
+FREE_PLAN_CODE = os.getenv('PAYSTACK_FREE_PlAN_CODE')
 
 paystack = Paystack(secret_key=SECRET_KEY)
 
@@ -38,8 +38,8 @@ class PayStackService(BillingService):
 
     if data["plan"] == PREMIUM_PLAN:
       plan_code = PREMIUM_PLAN_CODE
-    elif data["plan"] == BASIC_PLAN:
-      plan_code = BASIC_PLAN_CODE
+    elif data["plan"] == FREE_PLAN:
+      plan_code = FREE_PLAN_CODE
     else:
       return False, "Invalid plan", None
 
@@ -115,10 +115,10 @@ class PayStackService(BillingService):
           handle_paystack_payment(data_object)
         elif _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW:
           logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_NOT_RENEW :{data_object}")
-          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_NOT_RENEWING)
+          handle_paystack_subscription_update(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_NOT_RENEWING)
         elif _request["event"] == PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED:
           logger.info(f"PAYSTACK_CUSTOMER_SUBSCRIPTION_DISABLED :{data_object}")
-          handle_paystack_subscription_failure_or_cancelled(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_CANCELLED)
+          handle_paystack_subscription_update(data_object["customer"]["customer_code"], SUBSCRIPTION_STATUS_CANCELLED)
         elif _request["event"] == PAYSTACK_CUSTOMER_INVOICE_UPDATE:
           subscription = paystack.subscription.fetch(data_object["subscription"]["subscription_code"])
           data_object["plan_code"] = subscription["plan"]["plan_code"]

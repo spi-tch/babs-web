@@ -8,7 +8,6 @@ NOTION_APP_NAME = "Notion"
 
 PREMIUM_PLAN = "premium"
 FREE_PLAN = "free"
-BASIC_PLAN = "basic"
 TRIAL_PLAN = "basic_trial"
 
 STRIPE_CUSTOMER_SUBSCRIPTION_CREATED = "customer.subscription.created"
