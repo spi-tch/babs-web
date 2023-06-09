@@ -1,18 +1,18 @@
 import logging
 import os
-import requests
 from datetime import datetime
 
+import requests
 from stripe.api_resources.customer import Customer
 from stripe.api_resources.payment_intent import PaymentIntent
 from stripe.api_resources.subscription import Subscription
 
 from constants import PREMIUM_PLAN, FREE_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED, SUBSCRIPTION_STATUS_ACTIVE, \
-    SUBSCRIPTION_STATUS_CANCELLED, SUBSCRIPTION_STATUS_NOT_RENEWING
+    SUBSCRIPTION_STATUS_CANCELLED
 from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, \
     get_paystack_customer, User
-from data_access.payment import get_payment_for_user, create_payment
-from data_access.subscription import get_user_subscription, create_subscription, update_subscription
+from data_access.payment import create_payment
+from data_access.subscription import create_subscription, update_subscription
 from exceptns import UserNotFoundException
 
 logger = logging.getLogger(__name__)
@@ -62,19 +62,15 @@ def handle_payment_success_or_failure(payment_intent: PaymentIntent):
     user = find_user_by_id(customer.user_id)
     if user is None:
         raise UserNotFoundException("User not found")
-    payment = get_payment_for_user(user.uuid)
-    if payment is None:
-        create_payment(user_uuid=user.uuid, amount=payment_intent["amount"], currency=payment_intent["currency"],
-                       success=payment_intent["status"] == "succeeded", stripe_id=payment_intent["id"])
-    else:
-        update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
+    create_payment(user_uuid=user.uuid, amount=payment_intent["amount"] / 100, currency=payment_intent["currency"],
+                   success=payment_intent["status"] == "succeeded", stripe_id=payment_intent["id"])
 
 
 def handle_customer_deleted(customer: Customer):
     customer = delete_stripe_customer(customer["id"])
     if customer is not None:
         if user := find_user_by_id(customer.user_id):
-            update_user(user, {"tier": None, "sub_expires_at": None})
+            update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
             update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_CANCELLED, provider="stripe")
         pass
     logger.info("Customer deleted")
