@@ -1,12 +1,13 @@
 import logging
 import os
 import uuid
+from datetime import datetime
 from threading import Thread
 
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
-from constants import FREE_PLAN
+from constants import FREE_PLAN, PREMIUM_PLAN
 from data_access import User, find_user_by_uuid, create_user, update_user, create_waitlister
 from exceptns import UserNotFoundException
 from util.mailgun import send_email
@@ -58,7 +59,7 @@ class UserService:
       last_name=claims.get('family_name', None),
       uuid=__id__,
       email=claims['email'],
-      tier=FREE_PLAN,
+      tier=PREMIUM_PLAN if datetime.today().date() < datetime(2023, 6, 19).date() else FREE_PLAN,
       sub_expires_at=None
     )
     create_user(new_user)
