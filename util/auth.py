@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 BABS_DB_URL = f"{os.getenv('DB_SCHEME')}://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}" \
               f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-logger.info(f"DB URI: {BABS_DB_URL}")
+print(f"DB URI: {BABS_DB_URL}")
 engine = db.create_engine(BABS_DB_URL,
                           pool_size=3,
                           pool_pre_ping=True,

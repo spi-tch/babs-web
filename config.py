@@ -12,7 +12,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = (f"{os.getenv('DB_SCHEME')}://{os.getenv('DB_USER')}:"
                                f"{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:"
                                f"{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}")
-    logger.info(f"DB URI: {SQLALCHEMY_DATABASE_URI}")
+    print(f"DB URI: {SQLALCHEMY_DATABASE_URI}")
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 1000,
