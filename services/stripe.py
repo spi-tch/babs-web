@@ -64,8 +64,8 @@ class StripeService(BillingService):
             "payment_method_types": ["card"],
             "line_items": [{"price": price_id, "quantity": 1}],
             "mode": STRIPE_CHECKOUT_MODE,
-            "success_url": f"{os.getenv('FRONTEND_URL')}/app/settings",
-            "cancel_url": f"{os.getenv('FRONTEND_URL')}/app/settings",
+            "success_url": f"{os.getenv('FRONTEND_URL')}/app/settings?tab=subscription",
+            "cancel_url": f"{os.getenv('FRONTEND_URL')}/app/settings?tab=subscription",
             "customer": customer.stripe_id
         }
 

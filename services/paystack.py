@@ -57,7 +57,7 @@ class PayStackService(BillingService):
                 reference = session["reference"]  # where do we store ref? we (might) need it query transaction status
                 return True, "Success", session["authorization_url"]
             else:
-                logger.error(f"Paystack initiate tranaction failed. Paystack response : {session}")
+                logger.error(f"Paystack initiate transaction failed. Paystack response : {session}")
                 return False, "Payment initiation failed", None
         else:
             customer_subscriptions = cls.__get_active_subscription(user.id)
