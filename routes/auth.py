@@ -25,24 +25,23 @@ APP_REDIRECT = ""
 
 @auth.route(f"/auth", methods=["GET"])
 def authorize():
-  try:
-    data = request.json
-  except Exception as e:
-    data = {"scopes": SCOPES}
-  state = f"{request.environ['user'].uuid}"
-  global APP_REDIRECT
-  APP_REDIRECT = f"{request.origin}/app/integrations"
-  flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-    CLIENT_SECRETS_FILE, scopes=data["scopes"])
-  flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
-  authorization_url, state = flow.authorization_url(
-    access_type="offline",
-    include_granted_scopes="true",
-    login_hint=request.environ["user"].email,
-    prompt="consent", state=state)
+    try:
+        data = request.json
+    except Exception as e:
+        data = {"scopes": SCOPES}
+    state = f"{request.environ['user'].uuid}"
+    global APP_REDIRECT
+    APP_REDIRECT = f"{request.origin}/app/integrations"
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE, scopes=data["scopes"])
+    flow.redirect_uri = flask.url_for("auth.auth_callback", _external=True, _scheme="https")
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        login_hint=request.environ["user"].email,
+        prompt="consent", state=state)
 
-  return {"redirect_url": authorization_url}, 200
-
+    return {"redirect_url": authorization_url}, 200
 
 # @auth.route("/auth_callback")
 # def auth_callback():
