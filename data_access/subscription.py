@@ -32,8 +32,11 @@ def get_user_subscription(user_uuid) -> Subscription:
 
 def create_subscription(user_uuid, plan, status, provider, next_subscription_at):
     try:
-        subscription = Subscription(user_uuid=user_uuid, plan=plan, status=status, payment_provider=provider,
-                                    next_subscription_at=next_subscription_at)
+        subscription = Subscription(
+            user_uuid=user_uuid, plan=plan,
+            status=status, payment_provider=provider,
+            next_subscription_at=next_subscription_at
+        )
         db.session.add(subscription)
         db.session.commit()
         return True

@@ -12,8 +12,9 @@ from constants import PREMIUM_PLAN, FREE_PLAN, SUBSCRIPTION_STATUS_CHARGE_FAILED
 from data_access import get_stripe_customer, find_user_by_id, update_user, delete_stripe_customer, \
     get_paystack_customer, User
 from data_access.payment import create_payment
-from data_access.subscription import create_subscription, update_subscription
+from data_access.subscription import create_subscription, update_subscription, get_user_subscription
 from exceptns import UserNotFoundException
+from util.subscription import downgrade_user
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def handle_subscription_deleted(subscription: Subscription):
     customer = get_stripe_customer(customer)
     if customer is not None:
         if user := find_user_by_id(customer.user_id):
-            update_user(user, {"tier": None, "sub_expires_at": None})
+            downgrade_user(user)
             update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_CANCELLED, provider="paystack")
         pass
     logger.info("Subscription deleted")
@@ -70,7 +71,7 @@ def handle_customer_deleted(customer: Customer):
     customer = delete_stripe_customer(customer["id"])
     if customer is not None:
         if user := find_user_by_id(customer.user_id):
-            update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
+            downgrade_user(user)
             update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_CANCELLED, provider="stripe")
         pass
     logger.info("Customer deleted")
@@ -78,8 +79,12 @@ def handle_customer_deleted(customer: Customer):
 
 def handle_stripe_subscription_creation(subscription: Subscription):
     user, tier = __update_user(subscription)
-    create_subscription(user_uuid=user.uuid, plan=tier, status=SUBSCRIPTION_STATUS_ACTIVE, provider='stripe',
-                        next_subscription_at=datetime.fromtimestamp(subscription["current_period_end"]))
+    if get_user_subscription(user.uuid) is None:
+        create_subscription(user_uuid=user.uuid, plan=tier, status=SUBSCRIPTION_STATUS_ACTIVE, provider='stripe',
+                            next_subscription_at=datetime.fromtimestamp(subscription["current_period_end"]))
+    else:
+        update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_ACTIVE, provider="stripe",
+                            next_subscription_at=datetime.fromtimestamp(subscription["current_period_end"]))
     logger.info("Subscription created")
 
 
@@ -96,7 +101,7 @@ def handle_paystack_payment(transaction: dict):
     user = find_user_by_id(customer.user_id)
     amount = transaction["amount"] / 100
 
-    create_payment(user_uuid=user.uuid, amount=amount, currency=transaction["currency"], success="success",
+    create_payment(user_uuid=user.uuid, amount=amount, currency=transaction["currency"], success=True,
                    stripe_id=transaction["reference"])
 
 
@@ -115,8 +120,13 @@ def handle_paystack_new_subscription(subscription: dict):
         raise UserNotFoundException("Paystack customer not found")
     if user := find_user_by_id(customer.user_id):
         update_user(user, {"tier": tier, "sub_expires_at": subscription["next_payment_date"]})
-        create_subscription(user_uuid=user.uuid, plan=tier, provider="paystack",
-                            next_subscription_at=subscription["next_payment_date"], status=SUBSCRIPTION_STATUS_ACTIVE)
+        if get_user_subscription(user.uuid) is None:
+            create_subscription(user_uuid=user.uuid, plan=tier, provider="paystack",
+                                next_subscription_at=subscription["next_payment_date"],
+                                status=SUBSCRIPTION_STATUS_ACTIVE)
+        else:
+            update_subscription(user_uuid=user.uuid, status=SUBSCRIPTION_STATUS_ACTIVE, provider="paystack",
+                                next_subscription_at=subscription["next_payment_date"])
 
 
 def handle_paystack_subscription_event(subscription: dict):
@@ -152,7 +162,7 @@ def handle_paystack_subscription_failure_or_cancelled(customer, status):
     if user is None:
         raise UserNotFoundException("User not found")
 
-    update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
+    downgrade_user(user)
     update_subscription(user_uuid=user.uuid, status=status, provider="paystack")
 
 
@@ -165,7 +175,7 @@ def handle_paystack_subscription_update(customer, status):
         raise UserNotFoundException("User not found")
 
     if status == SUBSCRIPTION_STATUS_CHARGE_FAILED or status == SUBSCRIPTION_STATUS_CANCELLED:
-        update_user(user, {"tier": FREE_PLAN, "sub_expires_at": None})
+        downgrade_user(user)
 
     update_subscription(user_uuid=user.uuid, status=status, provider="paystack")
 

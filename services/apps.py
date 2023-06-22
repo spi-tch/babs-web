@@ -21,9 +21,11 @@ class AppService:
       return False, 'User already has this application.', None
     if create_app(app_name, user["uuid"], email):
       if app_name == GOOGLE_MAIL_APP_NAME:
-        watch_gmail(user, creds, email)
+        ...
+        # watch_gmail(user, creds, email)
       elif app_name == GOOGLE_CAL_APP_NAME:
-        watch_calendar(user, creds, email)
+        ...
+        # watch_calendar(user, creds, email)
       return True, 'Application added.', {'app': app_name}
     return False, f'Could not create {app_name} for user.', None
 
