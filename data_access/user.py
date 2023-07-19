@@ -29,8 +29,8 @@ class User(db.Model):
     def __repr__(self):
         return f'User: {self.first_name} {self.last_name}; Country: {self.country}'
 
-
-class Student(db.Model):
+      
+      class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
