@@ -30,7 +30,7 @@ class User(db.Model):
         return f'User: {self.first_name} {self.last_name}; Country: {self.country}'
 
       
-      class Student(db.Model):
+class Student(db.Model):
     __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
@@ -38,6 +38,9 @@ class User(db.Model):
                            onupdate=db.func.current_timestamp())
     telegram_id = db.Column(db.String(10), nullable=False)
     telegram_name = db.Column(db.String(40), nullable=True)
+    school = db.Column(db.String(50), nullable=True)
+    department = db.Column(db.String(50), nullable=True)
+    level = db.Column(db.Integer, nullable=True)
 
 
 class StripeCustomer(db.Model):
