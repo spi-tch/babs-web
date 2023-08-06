@@ -20,6 +20,9 @@ def add_channel(channel):
     if channel_name == "iMessage":
         return {'message': 'iMessage is currently unavailable', 'success': False}, 500
 
+    if channel_name == "whatsapp":
+        return {'message': 'WhatsApp is currently unavailable', 'success': False}, 500
+
     try:
         status, message, data = channel_service.create_channel(channel_name, request.environ['user'].uuid)
         if not status:
@@ -37,10 +40,18 @@ def add_channel(channel):
 @channel.route(f'/channel', methods=['GET'])
 def get_channel_and_channel_details():
     try:
-        if name := request.args.get('channel'):
-            status, message, data = channel_service.get_channel(request.environ['user'].uuid, name)
-        else:
+        channel_name = request.args.get('channel')
+        if not channel_name:
             status, message, data = channel_service.get_channels(request.environ['user'].uuid)
+            response = {'message': message, 'success': True, 'data': data}
+            return response, 200
+
+        if channel_name == "iMessage":
+            return {'message': 'iMessage is currently unavailable', 'success': False}, 500
+        elif channel_name == "whatsapp":
+            return {'message': 'WhatsApp is currently unavailable', 'success': False}, 500
+
+        status, message, data = channel_service.get_channel(request.environ['user'].uuid, channel_name)
         if not status:
             response = {'message': message, 'success': False}
             return response, 400
