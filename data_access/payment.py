@@ -1,81 +1,59 @@
 import logging
-import os
 
-import stripe
-from flask import Blueprint, request
-from stripe.error import SignatureVerificationError
-
-payment = Blueprint("payment", __name__)
+from util.app import db
 
 logger = logging.getLogger(__name__)
 
 
-# Create endpoints for payments, use Stripe's API
-# https://stripe.com/docs/api
-@payment.route("/payment", methods=["POST"])
-def payment():
-    data = request.json
+class Payment(db.Model):
+    __tablename__ = 'payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_uuid = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp())
+    updated_at = db.Column(db.TIMESTAMP, default=db.func.current_timestamp(),
+                           onupdate=db.func.current_timestamp())
+    amount = db.Column(db.Integer, nullable=False)
+    currency = db.Column(db.String, nullable=False)
+    success = db.Column(db.Boolean, nullable=False)
+    stripe_id = db.Column(db.String, nullable=False, unique=True, index=True)
+
+
+def create_payment(user_uuid, amount, currency, success, stripe_id):
     try:
-        stripe.api_key = os.getenv("STRIPE_SECRET")
-        event = stripe.Event.construct_from(
-            data, stripe.api_key
-        )
-        # Handle the event
-        if event.type == "payment_intent.succeeded":
-            payment_intent = event.data.object
-            # Then define and call a method to handle the successful payment intent.
-            # handle_payment_intent_succeeded(payment_intent)
-        elif event.type == "payment_method.attached":
-            payment_method = event.data.object
-            # Then define and call a method to handle the successful attachment of a PaymentMethod.
-            # handle_payment_method_attached(payment_method)
-        # ... handle other event types
-        else:
-            # Unexpected event type
-            logger.error(f"Unexpected event type {event.type}")
-    except SignatureVerificationError as e:
-        # Invalid signature
-        logger.error(e)
-        return {"error": "Invalid signature", "success": False}, 400
+        payment = Payment(user_uuid=user_uuid, amount=amount, currency=currency, success=success, stripe_id=stripe_id)
+        db.session.add(payment)
+        db.session.commit()
+        return True
     except Exception as e:
         logger.error(e)
-        return {"error": "Something Happened", "success": False}, 500
+        db.session.rollback()
+        return False
+    finally:
+        db.session.close()
 
-    return {"message": "Payment successful", "success": True}, 200
 
-
-@payment.route("/payment", methods=["GET"])
-def get_payment():
+def get_payment_for_user(user_uuid):
     try:
-        stripe.api_key = os.getenv("STRIPE_SECRET")
-        payment_intent = stripe.PaymentIntent.create(
-            amount=1000,
-            currency="usd",
-            payment_method_types=["card"],
-        )
-        return {"message": "Payment successful", "success": True}, 200
+        payments = Payment.query.filter_by(user_uuid=user_uuid).first()
+        return payments
     except Exception as e:
         logger.error(e)
-        return {"error": "Something Happened", "success": False}, 500
+        db.session.rollback()
+        return None
+    finally:
+        db.session.close()
 
 
-
-
-# Setup a stripe webhook
-@payment.route("/webhook", methods=["POST"])
-def webhook():
-  payload = request.data
-  sig_header = request.headers.get("Stripe-Signature")
-
-  try:
-    event = stripe.Webhook.construct_event(
-      payload, sig_header, os.getenv("STRIPE_WEBHOOK_SECRET")
-    )
-  except ValueError as e:
-    logger.error(e)
-    return {"error": "Invalid payload"}, 400
-  except SignatureVerificationError as e:
-    logger.error(e)
-    return {"error": "Invalid signature"}, 400
-
-
+def update_payment(payment_id, success):
+    try:
+        payment = Payment.query.filter_by(id=payment_id).first()
+        payment.success = success
+        db.session.commit()
+        return True
+    except Exception as e:
+        logger.error(e)
+        db.session.rollback()
+        return False
+    finally:
+        db.session.close()

@@ -3,8 +3,8 @@ import os
 
 from flask import Blueprint, request
 
-from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 import services
+from schema import validate_request, UserRegistrationSchema, UserUpdateSchema, WaitlistSchema
 from services import build_user_object
 
 VERSION = f"v{os.getenv('BABS_APP_VERSION')}"
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 user_service = services.UserService()
 
 
-@user.route(f'/{VERSION}/user/login', methods=['POST'])
+@user.route(f'/user/login', methods=['POST'])
 def register_or_login():
   request_data = request.json
   valid, data = validate_request(request_data, UserRegistrationSchema())
@@ -41,7 +41,7 @@ def register_or_login():
     return message, 500
 
 
-@user.route(f'/{VERSION}/user/update', methods=['POST'])
+@user.route(f'/user/update', methods=['POST'])
 def update_user():
   request_data = request.json
   valid, data = validate_request(request_data, UserUpdateSchema())
@@ -63,7 +63,7 @@ def update_user():
     return message, 500
 
 
-@user.route(f'/{VERSION}/user', methods=['GET'])
+@user.route(f'/user', methods=['GET'])
 def get_user():
   user_info = request.environ['user']
   try:
@@ -80,7 +80,7 @@ def get_user():
     return {"success": False, "message": "Unable to get user info. Contact admin."}, 500
 
 
-@user.route(f'/{VERSION}/wait', methods=['POST'])
+@user.route(f'/wait', methods=['POST'])
 def add_user_to_waitlist():
   request_data = request.json
   valid, data = validate_request(request_data, WaitlistSchema())

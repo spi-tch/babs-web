@@ -1,5 +1,7 @@
 from marshmallow import Schema, fields, ValidationError, validate
 
+from constants import FREE_PLAN, PREMIUM_PLAN
+
 
 class BaseSchema(Schema):
   pass
@@ -71,11 +73,34 @@ class GetChannelSchema(BaseSchema):
 
 class CreateSubscriptionSchema(BaseSchema):
   plan = fields.String(required=True,
-                       validate=validate.OneOf(['basic', 'premium']),
+                       validate=validate.OneOf([FREE_PLAN, PREMIUM_PLAN]),
                        error_messages={
                          'required': 'this field is mandatory.',
                          'invalid': 'invalid, pass a valid string.'
                        })
+  Authorization = fields.String(required=True,
+                                error_messages={
+                                  'required': 'this field is mandatory.',
+                                  'invalid': 'invalid, pass a valid string.'
+                                })
+
+  payment_provider = fields.String(required=False,
+                                   validate=validate.OneOf(['paystack', 'stripe']),
+                                   error_messages={
+                                      'invalid': 'invalid, pass either paystack or stripe.'
+                                })
+
+class AddApplicationSchema(BaseSchema):
+  app = fields.String(required=True,
+                      error_messages={
+                        'required': 'this field is mandatory.',
+                        'invalid': 'invalid, pass a valid string.'
+                      })
+  Authorization = fields.String(required=True,
+                                error_messages={
+                                  'required': 'this field is mandatory.',
+                                  'invalid': 'invalid, pass a valid string.'
+                                })
 
 
 def validate_request(json_object, schema: BaseSchema):

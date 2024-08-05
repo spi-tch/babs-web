@@ -9,13 +9,9 @@ from werkzeug import Request, Response
 
 import services
 from exceptns import UserNotFoundException
-from routes.user import VERSION
 
-SECURITY_EXCLUSIONS = [f'/{VERSION}/user/login',
-                       f'/{VERSION}/admin/find_user',
-                       f'/{VERSION}/wait', '/',
-                       f'/logo', f'/logowtext',
-                       '/auth_callback']
+SECURITY_EXCLUSIONS = ['/user/login', '/admin/find_user', '/wait', '/', '/logo', '/logowtext',
+                       '/auth', '/webhooks/stripe', '/subscription', '/billing_portal', '/webhooks/paystack']
 
 user_service = services.UserService()
 logger = logging.getLogger(__name__)
@@ -27,7 +23,11 @@ class Middleware:
 
   def __call__(self, environ, start_response):
     request = Request(environ)
+
     if request.path in SECURITY_EXCLUSIONS or request.method == "OPTIONS":
+      return self.app(environ, start_response)
+
+    if request.path == '/application' and request.method == 'POST':
       return self.app(environ, start_response)
 
     auth = request.headers.get("Authorization")

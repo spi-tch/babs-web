@@ -1,6 +1,11 @@
 import enum
+import logging
+
+from sqlalchemy import update
 
 from util.app import db
+
+logger = logging.getLogger(__name__)
 
 
 class ParamType(enum.Enum):
@@ -108,3 +113,60 @@ class Watch(db.Model):
   user_id = db.Column(db.String, db.ForeignKey('user.uuid'), nullable=False)
   latest = db.Column(db.String, nullable=False)
   app_name = db.Column(db.String, nullable=False)
+  email = db.Column(db.String, nullable=False)
+  resource_id = db.Column(db.String, nullable=True)
+
+
+def delete_watch(user_id, app_name):
+  try:
+    watch = Watch.query.filter_by(user_id=user_id, app_name=app_name).first()
+    if watch:
+      db.session.delete(watch)
+      db.session.commit()
+      return True
+    return False
+  except Exception as e:
+    db.session.rollback()
+    logger.error('Could not delete watch.', e)
+    return False
+  finally:
+    db.session.close()
+
+
+def create_or_update_watch(user_id, app_name, latest, email, resource_id=None):
+  try:
+    watch = Watch.query.filter_by(user_id=user_id, email=email, app_name=app_name).first()
+    if watch:
+      watch.latest = latest
+    else:
+      watch = Watch(user_id=user_id, app_name=app_name, latest=latest, email=email, resource_id=resource_id)
+      db.session.add(watch)
+    db.session.commit()
+    return True
+  except Exception as e:
+    db.session.rollback()
+    logger.error('Could not create or update watch.', e)
+    return False
+  finally:
+    db.session.close()
+
+
+def add_email_to_watch(user_id, email):
+  try:
+    statement = (update(Watch)
+                 .where(Watch.user_id == user_id)
+                 .values(email=email)
+                 .execution_options(synchronize_session=False))
+    db.session.execute(statement=statement)
+    db.session.commit()
+    return True
+  except Exception as e:
+    logger.error(e)
+    db.session.rollback()
+    return False
+  finally:
+    db.session.close()
+
+
+def get_watch(user_id, app_name, email):
+  return Watch.query.filter_by(user_id=user_id, email=email, app_name=app_name).first()

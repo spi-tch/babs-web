@@ -8,7 +8,6 @@ on:
 env:
   KUBECONFIG: ./staging-kubeconfig.yml
   REPOSITORY: temibabs/babs
-  IMAGE_TAG: ${{ github.sha }}
 
 permissions:
   contents: read
@@ -41,4 +40,4 @@ jobs:
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
         push: true
-        tags: ${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }},${{ env.REPOSITORY }}:latest
+        tags: ${{ env.REPOSITORY }}:${{ github.ref_name }},${{ env.REPOSITORY }}:latest

@@ -1,84 +1,71 @@
 import logging
 
-from sqlalchemy.exc import OperationalError
-
-from data_access import Application
-from util.app import db
-from util.watch import watch_calendar, watch_gmail, delete_gmail_watch, delete_calendar_watch
+from configs.apps import AppConfig
+from constants import GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME
+from data_access import get_app_by_user, create_app, get_user_app, delete_app, get_app_by_email, User, update_app_config
+from util.watch import watch_gmail, delete_gmail_watch, watch_calendar, delete_calendar_watch
 
 logger = logging.getLogger(__name__)
+GOOGLE_APPS = [GOOGLE_MAIL_APP_NAME, GOOGLE_CAL_APP_NAME]
 
 
 class AppService:
   @classmethod
-  def add_app(cls, app_name: str, user: dict, creds: dict) -> [bool, str, dict]:
-    try:
-      app = Application.query.filter_by(user_uuid=user["uuid"], name=app_name).first()
-      if app:
-        return False, 'User already has this application.', None
+  def add_app(cls, app_name: str, user: dict, creds: dict, email) -> [bool, str, dict]:
 
-      app = Application(
-        user_uuid=user["uuid"],
-        name=app_name
-      )
-      db.session.add(app)
-      db.session.commit()
-      if app_name == "Google Mail":
-        watch_gmail(user, creds=creds)
-        # Thread(target=watch_gmail, args=(user, creds)).start()
-      elif app_name == "Google Calendar":
-        # todo: add calendar watch
-        # watch_calendar(user, creds=creds)
-        pass
-        # Thread(target=watch_calendar, args=(user, creds)).start()
-      return True, 'Application created.', {
-        'app': app_name
-      }
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error(f'Unable to integrate {app_name} for user.', e)
-      return False, f'Could not create {app_name} for user.', None
-    finally:
-      db.session.close()
-      
+    if app_name in GOOGLE_APPS and get_app_by_email(app_name, email) is not None:
+      return False, 'Email is already in use.', None
+
+    app = get_app_by_user(user["uuid"], app_name, email)
+    if app:
+      return False, 'User already has this application.', None
+    if create_app(app_name, user["uuid"], email):
+      if app_name == GOOGLE_MAIL_APP_NAME:
+        ...
+        # watch_gmail(user, creds, email)
+      elif app_name == GOOGLE_CAL_APP_NAME:
+        ...
+        # watch_calendar(user, creds, email)
+      return True, 'Application added.', {'app': app_name}
+    return False, f'Could not create {app_name} for user.', None
+
   @classmethod
   def get_apps(cls, user: str) -> [bool, str, list]:
-    try:
-      apps = Application.query.filter_by(user_uuid=user).all()
-      if apps is None:
-        return False, 'No apps found.', None
-      return True, 'Apps found.', [app.name for app in apps]
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not find apps.', e)
-      return False, 'Unable to find apps.', None
-    finally:
-      db.session.close()
+    apps = get_user_app(user)
+    if apps is None:
+      return False, 'No apps found.', None
+    return True, 'Apps found.', [{"app": app.name, "email": app.email,
+                                  "config": AppConfig.from_string(app.name, app.config)} for app in apps]
 
   @classmethod
-  def remove_app(cls, user: str, app_name: str) -> [bool, str]:
+  def remove_app(cls, user: User, app_name: str, email: str = None) -> [bool, str]:
     # from .auth import AuthService
-    try:
-      # todo: revoke credentials
-      # revoked, message = AuthService().revoke_creds(user)
-      # if not revoked:
-      #   return False, message
-      app = Application.query.filter_by(user_uuid=user, name=app_name).first()
-      if app is None:
-        return False, 'No application found.'
+    # todo: revoke credentials
+    # revoked, message = AuthService().revoke_creds(user)
+    # if not revoked:
+    #   return False, message
 
-      if app_name == "Google Mail":
-        delete_gmail_watch(user)
-      elif app_name == "Google Calendar":
-        # todo: delete calendar watch
-        # delete_calendar_watch(user)
-        pass
-      db.session.delete(app)
-      db.session.commit()
-      return True, 'Application successfully removed.'
-    except OperationalError as e:
-      db.session.rollback()
-      logger.error('Could not remove application.', e)
-      return False, 'Could not remove application.'
-    finally:
-      db.session.close()
+    if app_name == GOOGLE_MAIL_APP_NAME and not email:
+      return False, 'Email is required for this app.'
+    email = email if email else user.email
+    app = get_app_by_user(user.uuid, app_name, email)
+    if app is None:
+      return False, 'App not found.'
+    if app_name == GOOGLE_MAIL_APP_NAME:
+      delete_gmail_watch(user.uuid, email)
+    elif app_name == GOOGLE_CAL_APP_NAME:
+      delete_calendar_watch(user.uuid, email)
+    if delete_app(app):
+      return True, 'App removed.'
+    return False, 'Could not remove app.'
+
+  @classmethod
+  def update_app_conf(cls, user_id: str, app_name: str, config: dict):
+    try:
+      conf = AppConfig(**config)
+      if not update_app_config(user_id, app_name, f"{conf}"):
+        return False, 'Could not update app config.'
+      return True, 'App config updated.'
+    except Exception as e:
+      logger.error(e)
+      return False, 'Unable to update app config.'
